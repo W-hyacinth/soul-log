@@ -30,6 +30,9 @@ export const metadata: Metadata = {
     locale: SITE_CONFIG.locale,
     siteName: SITE_CONFIG.title,
   },
+  verification: {
+    google: "-nU7y1r4UbW5AyTPuWeC_YDD87oF4JCwZdahEI1XVac",
+  },
 };
 
 export default function RootLayout({
