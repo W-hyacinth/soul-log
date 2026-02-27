@@ -6,6 +6,23 @@ import type { Post, PostMeta } from "@/types";
 
 const POSTS_DIR = path.join(process.cwd(), "content/posts");
 
+// 태그 → URL slug 변환 (한글 포함 태그를 URL-safe 슬러그로)
+export function tagToSlug(tag: string): string {
+  const map: Record<string, string> = {
+    "학습": "study",
+    "비동기": "async",
+    "HTTP 웹 기본": "http-web-basics",
+  };
+  if (map[tag]) return map[tag];
+  // 매핑 없는 경우: 소문자 + 공백→하이픈 + 특수문자 제거
+  return tag.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+}
+
+// URL slug → 원래 태그명 역조회
+export function slugToTag(slug: string, allTags: string[]): string {
+  return allTags.find((t) => tagToSlug(t) === slug) ?? slug;
+}
+
 function getPostFiles(): string[] {
   if (!fs.existsSync(POSTS_DIR)) return [];
   return fs
