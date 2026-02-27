@@ -1,0 +1,57 @@
+---
+title: "Document doesn't have a <title> element — Google Lighthouse SEO"
+description: "Lighthouse SEO 항목 중 title 요소 누락 문제를 다룹니다. 좋은 제목을 만드는 팁과 웹 접근성 관점의 가이드를 정리했습니다."
+date: 2020-11-12
+tags: ["SEO", "Lighthouse", "Accessibility"]
+cover: null
+---
+
+## 문서에 `<title>` 요소가 없습니다
+
+> `<title>`은 스크린리더 유저에게 페이지의 개요를 알려주며, 검색엔진이 사용자가 찾고자 하는 것과의 연관성을 판단할 때 제목에 크게 의존합니다.
+
+### 모든 페이지에 `<title>` 요소가 있을 경우, 모든 유저에게 도움이 됩니다
+
+- 검색엔진이 사용자 의도와의 연관성을 판단할 때 제목에 크게 의존합니다.
+- `<title>`은 스크린리더 사용자와 보조공학 기기 사용자들에게 페이지 개요를 제공하는 첫 번째 텍스트입니다.
+
+### 해당 항목에서 통과하지 못한 이유
+
+Lighthouse는 `<head>`에 `<title>` 요소가 빠져있는 페이지를 식별합니다.
+
+### Title을 추가하는 방법
+
+페이지의 `<head>`에 `<title>` 요소를 추가하고, 해당 페이지의 내용을 명확하게 표현하세요.
+
+```html
+<!doctype html>
+<html lang="ko">
+  <head>
+    <title>당신의 첫 마라톤을 위한 20주간 훈련 스케줄</title>
+  </head>
+  <body>
+  </body>
+</html>
+```
+
+### 좋은 제목을 만드는 팁
+
+- 각 페이지에 고유한 제목을 사용합니다.
+- 간결하면서도 명확하게 작성하세요. "Home"과 같은 모호한 제목은 피하세요.
+- 키워드 채우기를 피하세요. 이는 검색 엔진의 스팸 처리 대상이 될 수 있습니다.
+- 제목은 설명적이지만 간결해야 합니다.
+
+**나쁜 예:** `<title>도넛 레시피</title>`
+**좋은 예:** `<title>메리의 메이플 베이컨 도넛 레시피</title>`
+
+더 자세한 내용은 [Google의 검색결과 최적화 가이드](https://developers.google.com/search/docs/advanced/appearance/good-titles-snippets)를 참고하세요.
+
+### 국내 웹 접근성 사례
+
+한국형 웹 컨텐츠 접근성 지침 2.1의 2.4.2항은 "페이지, 프레임, 콘텐츠 블록에는 적절한 제목을 제공해야 한다"고 명시합니다. 웹 접근성 인증마크 획득을 목표로 하는 프로젝트라면 특히 주의해야 합니다.
+
+네이버와 다음 같은 주요 포털은 경로를 명확히 안내하는 제목을 제공합니다.
+
+출처:
+- [web.dev/document-title](https://web.dev/document-title/)
+- [Naver 접근성 가이드라인](https://nuli.navercorp.com/guideline/s02/g15#page_tit)

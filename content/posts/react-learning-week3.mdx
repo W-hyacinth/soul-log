@@ -1,0 +1,201 @@
+---
+title: "React 학습 3주차 — Hooks (useMemo, useReducer, useRef)"
+description: "Vue.js 개발자 시점에서 React의 주요 Hooks를 학습하며 정리한 내용입니다. useMemo, useReducer, useRef의 개념과 트러블슈팅을 다룹니다."
+date: 2024-09-11
+tags: ["React", "Frontend", "학습"]
+cover: null
+---
+
+2주차에 이어 React의 주요 Hooks를 학습하며 정리한 내용입니다.
+
+---
+
+## useMemo
+
+`useMemo`는 재렌더링 사이에 계산 결과를 캐싱할 수 있게 해주는 React Hook입니다.
+
+```javascript
+const cachedValue = useMemo(calculateValue, dependencies)
+```
+
+- 첫 번째 인자는 캐싱할 계산 값을 반환하는 함수입니다.
+- 두 번째 인자는 `useEffect`와 마찬가지로 의존성 배열입니다. Vue.js의 `computed`와 사용 방식이 유사합니다.
+
+`useMemo`는 캐싱된 값을 버려야 할 특별한 이유가 없는 한 계속 보관합니다(메모이제이션). 따라서 불필요하게 남발하면 오히려 메모리 누수가 생길 수 있습니다.
+
+### 언제 사용할까?
+
+계산이 복잡하거나 무거워서 렌더링마다 실행되면 성능 문제가 생길 때 사용합니다. 비싼 연산인지 확인하는 방법은 아래와 같습니다.
+
+```javascript
+console.time('filter array');
+const visibleTodos = filterTodos(todos, tab);
+console.timeEnd('filter array');
+```
+
+기록된 시간이 1ms 이상이라면 해당 계산을 메모이제이션하는 것을 고려해볼 만합니다. Chrome의 CPU 스로틀링 옵션을 활용해 확인하는 방법도 있습니다.
+
+### useMemo vs useCallback
+
+둘 다 캐싱을 목적으로 하지만 용도가 다릅니다.
+
+- **`useMemo`**: **값**을 캐싱합니다. 상위 컴포넌트의 리렌더링으로 인해 자식 컴포넌트가 불필요하게 리렌더링되는 것을 방지할 때 주로 사용합니다.
+- **`useCallback`**: **함수 자체**를 캐싱합니다. 상위 컴포넌트에서 자식 컴포넌트에 함수를 props로 넘길 때, 불필요한 리렌더링을 방지하기 위해 함수 동등성을 유지하는 용도로 사용합니다.
+
+함수 동등성이란, 컴포넌트 내부에서 함수를 정의하면 렌더링마다 새로운 함수 객체가 생성되어 동일한 값을 반환하더라도 서로 다른 참조값을 갖는 문제를 말합니다.
+
+```javascript
+const functionOne = () => { return 5 }
+const functionTwo = () => { return 5 }
+console.log(functionOne === functionTwo) // false
+```
+
+참고: [useMemo와 useCallback는 왜, 언제 사용할까?](https://velog.io/@khy226/useMemo와-useCallback-훑어보기)
+
+### useMemo 트러블슈팅
+
+**1. 객체를 반환해야 하는데 `undefined`가 반환될 때**
+
+화살표 함수에서 객체를 반환할 때 소괄호 없이 중괄호만 쓰면 함수 본문으로 인식합니다. 의외로 자주 하는 실수입니다.
+
+**2. 리렌더링 방지를 위해 사용했는데 계산이 계속 다시 실행될 때**
+
+의존성 배열을 지정하지 않았는지 확인합니다. `useEffect`와 동일하게, 의존성 배열 미지정 시 렌더링마다 계산이 실행됩니다.
+
+**3. 반복문에서 각 항목에 대해 `useMemo`를 호출해야 할 때**
+
+Hook은 반드시 컴포넌트 최상위 레벨에서만 호출해야 합니다. 반복문 안에서는 사용할 수 없습니다.
+
+---
+
+## useReducer
+
+`useReducer`는 컴포넌트에 reducer를 추가하는 React Hook입니다. reducer는 컴포넌트 외부에서 state를 다루는 함수로, 한 컴포넌트에서 state 업데이트가 여러 이벤트 핸들러로 분산되어 관리가 어려울 때 사용합니다.
+
+```javascript
+import { useReducer } from 'react';
+
+function reducer(state, action) {
+  // switch 사용을 권장하지만 if문도 가능
+  if (action.type === 'incremented_age') {
+    return { age: state.age + 1 };
+  }
+  throw Error('Unknown action.');
+}
+
+const init = () => {
+  return { age: 8 }
+}
+
+export default function Counter() {
+  // init을 전달하는 경우
+  // const [state, dispatch] = useReducer(reducer, { age: 42 }, init);
+
+  // init 없이 사용하는 경우
+  const [state, dispatch] = useReducer(reducer, { age: 42 });
+
+  return (
+    <>
+      <button onClick={() => { dispatch({ type: 'incremented_age' }) }}>
+        Increment age
+      </button>
+      <p>Hello! You are {state.age}.</p>
+    </>
+  );
+}
+```
+
+### 매개변수 설명
+
+`useReducer`는 3가지 매개변수를 받습니다.
+
+| 매개변수 | 필수 여부 | 설명 |
+|---|---|---|
+| `reducer` | 필수 | state가 어떻게 업데이트될지 지정하는 함수. 직접 변경 대신 새 객체를 반환해야 합니다. |
+| `initialArg` | 필수 | 초기 state 값. 모든 타입 할당 가능합니다. |
+| `init` | 선택 | 초기 state를 반환하는 함수. 미할당 시 `initialArg`를 초기 state로 사용합니다. **반드시 함수여야 합니다.** |
+
+`init`이 함수가 아닐 경우 아래와 같은 에러가 발생합니다.
+
+![init이 함수가 아닐 때 발생하는 에러](/images/react-learning-week3/usereducer-init-not-function-error.png)
+
+### init을 쓰는 이유
+
+`initialArg`만으로도 초기값 설정이 되는데 왜 `init` 함수를 별도로 쓸까요? 초기화 함수를 전달하면 리렌더링 시 해당 함수가 다시 호출되지 않기 때문입니다. 아래 GIF에서 차이를 확인할 수 있습니다.
+
+**init을 설정한 경우** — 리렌더링 시 초기화 함수가 재호출되지 않습니다.
+
+![init을 설정했을 때 동작](/images/react-learning-week3/usereducer-with-init.gif)
+
+**init을 설정하지 않은 경우** — 리렌더링마다 `initialArg`가 매번 평가됩니다.
+
+![init을 설정하지 않았을 때 동작](/images/react-learning-week3/usereducer-without-init.gif)
+
+### 반환값
+
+`useReducer`는 `[state, dispatch]` 형태의 배열을 반환합니다.
+
+- **`state`**: 최초 렌더링 시 `init`이 있으면 `init(initialArg)`, 없으면 `initialArg` 값입니다.
+- **`dispatch`**: state를 새로운 값으로 업데이트하고 리렌더링을 발생시키는 함수입니다. action 객체 하나를 매개변수로 받으며, 반환값은 없습니다.
+
+```javascript
+// action 객체 예시
+{ type: 'incremented_age' }
+{ type: 'changed_name', nextName: e.target.value }
+```
+
+### useReducer 트러블슈팅
+
+**1. `dispatch` 후 오래된 state 값이 출력될 때**
+
+`dispatch`가 호출되었다고 해서 즉시 state가 변경되지 않습니다. state는 스냅샷으로 동작하기 때문에 새로운 리렌더링이 발생하기 전까지 기존 값을 유지합니다. 업데이트될 state 값을 알고 싶다면 reducer 함수를 직접 호출해야 합니다.
+
+**2. `dispatch` 후 화면이 업데이트되지 않을 때**
+
+이전 state와 다음 state 값이 동일하면 React는 리렌더링을 건너뜁니다. 객체 state의 특정 key를 직접 변경(mutation)했을 때 주로 발생합니다. 객체나 배열 state는 항상 새로운 값으로 교체해야 합니다.
+
+![배열 state 업데이트 시 선호/비선호 방식 비교](/images/react-learning-week3/array-state-update-methods.png)
+
+**3. reducer의 state 일부가 `dispatch` 후 `undefined`가 될 때**
+
+각 `case`에서 새 객체를 반환할 때 기존 state의 모든 필드를 spread로 복사했는지 확인합니다.
+
+**4. reducer의 모든 state가 `dispatch` 후 `undefined`가 될 때**
+
+`case` 중 하나에 `return`이 누락되었거나, action의 `type`이 어떤 `case`와도 매칭되지 않는 경우입니다.
+
+**5. Too many re-renders 오류가 발생할 때**
+
+`dispatch` 호출 자체가 리렌더링을 트리거하므로, `dispatch`가 무한 루프를 만드는 위치에 있지 않은지 확인합니다.
+
+**6. reducer와 초기화 함수가 2번 호출될 때**
+
+Strict Mode에서 의도적으로 발생하는 현상입니다. 반환값이 순수한지(객체나 배열에 직접 할당하는 행위가 없는지) 확인합니다.
+
+---
+
+## useRef
+
+`useRef`는 렌더링에 필요하지 않은 값을 참조할 수 있게 해주는 React Hook입니다.
+
+- 매개변수에 초기값을 전달합니다. 최초 렌더링 이후에는 초기값 인자가 무시됩니다.
+- ref 내부의 값을 업데이트하려면 `.current`에 직접 할당합니다. state처럼 setter 함수를 제공하지 않습니다.
+- ref 값이 변경되어도 리렌더링이 발생하지 않습니다.
+
+초기에만 객체 생성이 필요한 경우, 아래와 같이 방어 로직을 추가합니다. `useRef(new VideoPlayer())`처럼 직접 객체를 생성해서 할당하면 렌더링마다 객체가 생성되기 때문입니다.
+
+```javascript
+function Video() {
+  const playerRef = useRef(null);
+  if (playerRef.current === null) {
+    playerRef.current = new VideoPlayer();
+  }
+  // ...
+}
+```
+
+### useRef 트러블슈팅
+
+**커스텀 컴포넌트에 대한 ref를 얻을 수 없을 때**
+
+자식 컴포넌트의 DOM 노드에 부모가 접근하려면 자식 컴포넌트에서 `forwardRef`를 활용해 접근이 가능하도록 처리해야 합니다.

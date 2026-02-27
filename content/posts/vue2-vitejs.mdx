@@ -1,0 +1,205 @@
+---
+title: "Vue2에 Vite.js 적용하기"
+description: "Vue2 프로젝트에 Webpack 대신 Vite.js를 번들러로 전환하는 과정에서 겪은 이슈와 해결 방법을 정리합니다."
+date: 2024-01-15
+tags: ["Vue.js", "Vite", "Frontend"]
+cover: null
+---
+
+<Callout emoji="💡">
+일정과 인력 문제로 차선책으로 다시 Vue2로 돌아오게 되었지만, Vue3 Vite의 맛을 보고 나니 `npm run dev` 실행 시 느린 속도를 견딜 수가 없었습니다. 번들러만큼은 Vite로 바꾸기로 했습니다.
+</Callout>
+
+## 적용 과정에서 확인된 사항
+
+- Vite는 기본적으로 Vue3에 최적화되어 있기 때문에 초기 설정에서 Vue 버전이 3으로 설정됩니다.
+  - Vite 버전을 낮추고 npm에서 Vue2로 다운그레이드해서 설치해야 합니다.
+
+  ```bash
+  npm create vite@3
+  npm uninstall @vitejs/plugin-vue
+  npm i vue@2
+  ```
+
+- Vue2로 변경 시 `npm i vue-router vuex`로 버전을 추가하려고 하면 설치가 되지 않습니다.
+  - 설치가 안 되는 이유는 vue-router와 vuex가 Vue의 버전에 따라 의존성 이슈가 있기 때문입니다.
+  - vue-router와 vuex를 설치할 때는 버전을 지정해야 합니다.
+
+  ```bash
+  npm i vue-router@3 vuex@3 portal-vue@2 @vitejs/plugin-vue2
+  ```
+
+  - 그 외 기타 플러그인들 중 Vue3를 지원하는 것들은 버전 미선언 시 Vue3 기준으로 설치를 시도하다가 실패하기 때문에 버전 선언을 해주는 것이 좋습니다.
+  - Vue2에서 지원된 패키지 중 Vite에서 사용 불가한 것들이 일부 있다고 알려져 있습니다.
+    - 다행히 현재 서비스 기준에서는 확인되지 않았으며, 미지원 시 대체 플러그인을 찾으면 됩니다.
+    - Vue3에서도 지원되는 패키지는 기본적으로 Vite 지원이기 때문에 Vue2에서도 지원되도록 설계된 것으로 보입니다. (예: element-ui, portal-vue)
+
+- `require` 사용이 불가합니다.
+  - 기존 store에서 파일 생성 시 자동 처리하는 코드에서 오류가 발생합니다.
+  - 현재는 개별 파일을 `import`하는 방식으로 임시 처리하고 있습니다.
+    - 이 이슈로 Vite를 포기하기엔 아쉽기 때문에 나중에 store에 파일 생성 시 자동으로 모듈이 붙도록 하는 방법을 고민해볼 예정입니다.
+
+- `this._vm.xx` 형태로 작성된 로직을 화살표 함수로 변경하면 `this` 객체가 Vue 인스턴스가 아닌 `undefined`로 인식되는 상황이 발생합니다.
+  - store에서는 되도록 `function(){}` 형태를 사용하는 것을 권장합니다.
+
+- env 환경 변수에 지정한 변수명의 prefix는 `VITE`로 지정해야 합니다.
+  - 그래야 `import.meta.env`로 불러올 수 있습니다.
+  - prefix 값이 마음에 들지 않는다면 `vite.config.js` 설정에서 변경할 수 있습니다.
+
+- 기존 `process.env`는 `import.meta.env`로 교체해서 작성해야 합니다.
+
+- `vite.config.js`에서 env 환경변수를 활용해 글로벌 변수를 선언하려고 하면 아래 에러가 발생할 수 있습니다.
+  - `GET https://.../node_modules/vite/dist/client/env.mjs net::ERR_ABORTED 500 (Internal Server Error)`
+  - [관련 이슈](https://github.com/vitejs/vite/issues/9167)를 참조해 `JSON.stringify('value값')` 형태로 할당해야 에러가 발생하지 않습니다.
+
+- `중요` env 내 설정 값을 편하게 사용하려고 무작정 `define`에 글로벌 변수로 지정하지 않도록 주의해야 합니다.
+  - 글로벌 선언 시 `window` 객체에 노출되어 중요 정보가 외부에서 확인될 수 있습니다.
+
+- 현재 서비스의 dev 서버에 올라가야 하는 환경 변수는 `.env.devserver`에서 지정해야 합니다.
+  - `.env.development`에 지정해야 한다고 착각하기 쉬우므로 주의가 필요합니다.
+
+- 전역에서 선언한 변수를 정상적으로 인식하지 못하는 경우가 간혹 있습니다.
+
+---
+
+## 빌드 및 실제 서비스 적용 과정에서 확인된 이슈들
+
+### `define`에 `global`로 선언 시 빌드 에러 발생
+
+패키지 에러를 해소하고자 `define`에 `global`로 선언했을 경우 빌드 단계에서 에러가 발생합니다.
+
+![define global 선언 시 빌드 에러 스크린샷](/images/vue2-vitejs/build-error-global.png)
+
+선언 방식을 `global`이 아닌 `window.global`로 변경해야 해결됩니다.
+
+- [관련 이슈 참고](https://github.com/nuxt/nuxt/issues/13941)
+
+### GitHub Actions 빌드 실패
+
+**1. vuex store 빌드 실패**
+
+```
+ENOENT: no such file or directory, open '.../src/store/modules/file'
+```
+
+![GitHub Actions vuex store 빌드 실패 스크린샷](/images/vue2-vitejs/github-actions-build-fail.png)
+
+- **원인**: `File.js`와 `User.js`가 `modules` 하위 폴더 디렉토리에 위치하지 않아서 발생한 이슈입니다.
+- **해결**: `File.js`와 `User.js`를 `common` 폴더 생성 후 해당 디렉토리로 이동하여 해결했습니다.
+
+**2. 장시간 페이지를 켜놓으면 동적 import 에러 발생**
+
+```
+TypeError: Failed to fetch dynamically imported module
+```
+
+이 현상은 Webpack에서도 종종 발생하는 이슈이나, Vite 적용 이후 빈도가 잦아진 것으로 보입니다.
+
+- [관련 이슈](https://github.com/vitejs/vite/issues/11804)
+
+시도한 해결 방법들:
+
+1. `router.onError`로 해당 타입 에러 발생 시 새로고침 처리를 추가했으나, `window.location = to.fullPath`에서 `fullPath` 값이 없다는 에러가 반환되어 현재는 이슈가 재현되지 않는 상태입니다.
+2. Vite 공식 문서의 [로드 에러 처리 방안](https://ko.vitejs.dev/guide/build.html#load-error-handling) 적용 — 실패했습니다.
+3. router 내 컴포넌트 경로 지정 방식 변경을 시도했습니다.
+
+**3. MIME type 에러**
+
+```
+Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of "text/html".
+```
+
+주로 Storybook 세팅 시 발생하는 이슈로 알려져 있으나, 현재 환경에는 관련 세팅이 없어 원인 파악 중입니다.
+
+**4. `vertx` 모듈 not found**
+
+```
+Failed to resolve import "vertx" from "node_modules/..."
+```
+
+- `html2pdf` 패키지 설치 후 적용 과정에서 발생한 에러입니다.
+- `viteCommonjs` 플러그인에 `skipPreBuild: true` 옵션 추가 후 해결되었습니다.
+- [관련 이슈 참고](https://github.com/auth0/auth0.js/issues/1250#issuecomment-1373461500)
+
+---
+
+## 실제 개선된 점
+
+### 빌드 속도 향상
+
+2차 스프린트 기준으로 점차 빌드해야 할 파일 및 설정이 늘어나고 있음에도 2분이 넘어가는 경우가 매우 드뭅니다. 초반 설정과 크게 차이가 없는 수준을 유지하고 있습니다.
+
+### 글로벌 변수로 API 경로를 깔끔하게 선언 가능
+
+**Vite 적용 전 (Webpack 방식)**
+
+```javascript
+// src/mixin/https.js
+Vue.mixin({
+  computed: {
+    SPARK_ONE_CREW_API_URL() {
+      return process.env.VUE_APP_SPARK_ONE_CREW_API_URL
+    },
+    // ... 이하 생략
+  },
+})
+
+// src/store/index.js
+import '@/mixin/http'
+
+// src/store/modules/User.js
+export default {
+  namespaces: true,
+  actions: {
+    async login({ dispatch }, payload) {
+      const response = await this._vm.post(
+        `${this._vm.SPARK_ONE_CREW_API_URL}login`,
+        payload,
+      )
+      return response
+    },
+    // ... 이하 생략
+  }
+}
+```
+
+**Vite 적용 후**
+
+```javascript
+// vite.config.js
+import { defineConfig, loadEnv } from 'vite'
+
+export default defineConfig(({ mode }) => {
+  const env = { ...process.env, ...loadEnv(mode, process.cwd()) }
+  return {
+    define: {
+      VITE_DEFAULT_API_URL: JSON.stringify(env.VITE_APP_DEFAULT_API_URL),
+    },
+    // ... 이하 생략
+  }
+})
+
+// src/store/modules/User.js
+export default {
+  namespaces: true,
+  actions: {
+    async login({ dispatch }, payload) {
+      const response = await this._vm.post(
+        `${VITE_DEFAULT_API_URL}login`,
+        payload,
+      )
+      return response
+    },
+    // ... 이하 생략
+  }
+}
+```
+
+mixin을 거치지 않고 글로벌 변수를 바로 참조할 수 있어 코드가 훨씬 간결해졌습니다.
+
+---
+
+## 참고자료
+
+- [Vite 공식 문서 — 설정에서 환경 변수 사용하기](https://ko.vitejs.dev/config/#using-environment-variables-in-config)
+- [vite/dist/client/env.mjs request failed with status code 500 · vitejs/vite #9167](https://github.com/vitejs/vite/issues/9167)

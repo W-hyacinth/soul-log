@@ -1,0 +1,34 @@
+---
+title: "Image elements do not have [alt] attributes — Google Lighthouse SEO"
+description: "Lighthouse SEO 항목 중 이미지 alt 속성 누락 문제를 다룹니다. 올바른 alt 텍스트 작성법과 접근성 관점의 가이드를 정리했습니다."
+date: 2020-11-21
+tags: ["SEO", "Lighthouse", "Accessibility"]
+cover: null
+---
+
+## 이미지 요소에 alt 속성이 없습니다
+
+`<img>` 요소에 `alt` 속성이 없으면 Google Lighthouse SEO와 접근성 검사 모두에서 실패합니다.
+
+### 해결 방법
+
+모든 `<img>` 요소에 설명적인 텍스트가 포함된 `alt` 속성을 추가합니다. 장식용 이미지는 빈 `alt=""` 속성을 사용합니다.
+
+```html
+<img alt="Chrome DevTools에서 Audits 설정" src="...">
+```
+
+### alt 텍스트 작성 가이드
+
+- alt 텍스트는 시각 장애 사용자에게 이미지의 의미, 목적, 의도를 전달합니다
+- "차트" 또는 "이미지" 같은 일반적인 용어를 피하세요
+- ARIA 라벨(`aria-label`, `aria-labelledby`)은 보충할 수 있지만 `alt` 속성을 대체해서는 안 됩니다
+- 이미지만 포함된 링크는 의미있는 alt 텍스트가 있어야 접근성 검사를 통과합니다
+
+### 모범 사례
+
+alt 텍스트는 시력이 있는 사용자가 시각적으로 얻는 정보를 전달하도록 작성하세요. 링크 내 이미지는 빈 속성이 아닌 설명적인 alt 텍스트가 있어야 링크에 식별 가능한 이름이 부여됩니다.
+
+출처:
+- [WebAIM 대체 텍스트 가이드](https://webaim.org/techniques/alttext/)
+- 한국형 웹 컨텐츠 접근성 지침 2.1

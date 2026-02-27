@@ -1,0 +1,107 @@
+---
+title: "URI와 웹 브라우저 요청 흐름"
+description: "URI의 개념과 URL 구조 분석, 그리고 웹 브라우저에서 HTTP 요청이 처리되는 흐름을 정리합니다."
+date: 2022-06-14
+tags: ["Network", "HTTP", "URI", "모든 개발자를 위한 HTTP 웹 기본 지식"]
+cover: null
+---
+
+## URI
+
+- Uniform Resource Identifier (리소스를 다른 항목과 구분하는 데 필요한 자원)
+- URI는 로케이터(locator - `URL`), 이름(name - `URN`) 또는 둘 다 추가로 분류될 수 있습니다.
+
+![URI, URL, URN 구조](/images/uri-web-browser-request/uri-url-urn-structure.png)
+
+흔히 hash라고 부르던 것이 영문으로는 fragment라는 점은 처음 알게 된 부분이었습니다.
+
+- URL과 URN 2가지 모두를 포괄하는 의미입니다.
+  - URL은 리소스가 있는 위치를 지정합니다.
+  - URN은 리소스에 이름을 부여합니다.
+  - 그러나 URN 이름만으로는 실제 리소스를 찾을 수 있는 방법이 아직 보편화되어 있지 않습니다.
+  - 그래서 우리가 흔히 아는 `URL`을 많이 사용합니다.
+
+---
+
+## URL 분석
+
+[https://www.google.com/search?q=hello&hl=ko](https://www.google.com/search?q=hello&hl=ko)
+
+`scheme://[userinfo@] [host] [:port] [/path] [?query] [#fragment]`
+
+### `https://` - 스키마
+
+- 스키마는 주로 **프로토콜**을 사용합니다.
+  - `프로토콜`: 어떤 방식으로 자원에 접근할 것인가 하는 약속과 규칙
+- 예시: http, https, ftp
+
+### `[userinfo@]`
+
+- URL에 사용자 정보를 포함해서 인증하는 용도입니다.
+- 많이 사용하지는 않습니다.
+- 우리가 보는 경우로는 Github에서 권한을 체크할 때 정도가 있습니다.
+
+```bash
+➜  workspace git clone https://github.com/avidenf/selpi-note-v1.git
+Cloning into 'selpi-note-v1'...
+Username for 'https://github.com': avidenf-choihs
+Password for 'https://avidenf-choihs@github.com':
+```
+
+### `www.google.com` - 호스트명
+
+- 도메인명이나 IP 주소를 직접 사용합니다.
+
+### `:443` - 포트 번호
+
+- 접속 포트는 일반적으로 생략합니다.
+- 단, 특정 서버에 접속 시에는 입력하기도 합니다.
+
+### `/search` - 패스
+
+- 리소스 경로입니다.
+
+### `q=hello&hl=ko` - 쿼리 파라미터
+
+- key=value 형태입니다.
+- `?`로 시작, `&`로 추가합니다.
+- 공식적인 이름은 query이지만, `query parameter` 혹은 `query string` 등으로 불립니다.
+
+### `[#fragment]`
+
+- HTML 내부 북마크 등에 사용하며 서버에 전송하는 정보는 아닙니다.
+- 흔히 해시라고 부릅니다.
+
+---
+
+## 웹 브라우저 요청 흐름
+
+`https://www.google.com/search?q=hello&hl=ko`
+
+1. DNS(IP 주소) 조회 → `200.200.200.2`, PORT 정보 확인 → `443` 포트 확인
+2. HTTP 요청 메시지 생성
+
+```
+GET /search?q=hello&hl=ko HTTP/1.1
+Host: www.google.com
+```
+
+3. SOCKET 라이브러리를 통해 전달
+   1. TCP/IP 연결 (IP, PORT)
+   2. 데이터 전달
+4. TCP/IP 패킷 생성, HTTP 요청 메시지 포함
+5. 구글 서버에 요청 패킷 도착
+6. 구글 서버에서 HTTP 응답 메시지 생성
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=UTF-8
+Content-Length: 3423
+
+<html>
+  <body>...</body>
+</html>
+```
+
+7. 응답 패킷을 전송
+8. 웹 브라우저에서 HTML 렌더링

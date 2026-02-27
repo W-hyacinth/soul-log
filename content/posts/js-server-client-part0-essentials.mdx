@@ -1,0 +1,594 @@
+---
+title: "자바스크립트로 서버와 클라이언트 구축하기 — Part 0. 필수 문법"
+description: "변수, 데이터 타입, 비구조화 할당, 클래스, 모듈 패턴 등 자바스크립트 핵심 문법을 정리합니다."
+date: 2022-06-23
+tags: ["JavaScript", "Frontend", "학습"]
+cover: null
+---
+
+## 목차
+
+1. 변수 생성
+2. 데이터 타입
+3. 데이터 형 변환
+4. 비구조화 할당 (구조분해할당)
+5. 조건문
+6. 반복문
+7. Array(배열) 고급 사용법
+8. Object(객체) 고급 사용법
+9. 전개 연산자 (Spread Operator)
+10. 함수와 화살표 함수
+11. 클래스
+12. 모듈 패턴
+
+---
+
+## 1. 변수 생성
+
+JavaScript에서 흔히 사용하는 변수는 `var`, `let`, `const`입니다.
+
+`let`과 `const`는 범위(scope)를 갖고 있지만, `var`의 경우 function 내에 존재하지 않는 이상 호이스팅(hoisting)으로 인해 상단으로 이동하는 습성이 있습니다.
+
+- `var`는 변수 선언과 초기화가 동시에 발생한 뒤 값의 할당이 이루어집니다.
+- `let`은 변수 선언 → 초기화 → 값의 할당이 순차적으로 진행됩니다.
+- `const`는 변수 선언, 초기화, 할당이 동시에 이루어지지 않으면 에러가 발생합니다.
+
+심지어 아래의 코드에서도 호이스팅은 발생합니다.
+
+```javascript
+var y = 1
+console.log(x)
+for (var x = 0; x < 10; x++) {
+  for (var y = 0; y < 10; y++) {
+  }
+}
+console.log(y)
+```
+
+```javascript
+let y = 1
+for (let y = 0; y < 10; y++) {
+}
+console.log(y)
+```
+
+호이스팅에 대해서는 모던 자바스크립트 책을 통해 디테일하게 공부하는 것을 추천합니다.
+
+---
+
+## 2. 데이터 타입
+
+`null`의 경우 `typeof null`로 확인해보면 자바스크립트 자체의 버그로 `Object`로 표기됩니다.
+
+---
+
+## 3. 데이터 형 변환
+
+`JSON.stringify`와 `JSON.parse`는 주로 다음과 같은 경우에 활용합니다.
+
+**Object의 Deep Copy 처리**
+
+```javascript
+const deepCopy = function (obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+```
+
+**Object의 데이터 일치 여부 확인**
+
+```javascript
+const a1 = { a: 1, b: 1 }
+const a2 = JSON.stringify(a1)
+const b1 = { a: 1, b: 1 }
+const b2 = JSON.stringify(b1)
+console.log(a1 === b1)
+console.log(a2 === b2)
+console.log(JSON.parse(a2) === JSON.parse(b2))
+```
+
+**Array 내 중복 Object 제거**
+
+```javascript
+const getUniqueItems = items => {
+  const Objects = items.map(JSON.stringify)
+  return Array.from(new Set(Objects)).map(JSON.parse)
+}
+```
+
+---
+
+## 4. 비구조화 할당(구조분해할당)
+
+배열이나 객체에서 특정 값이나 키 값만 가져오는 방법입니다.
+
+```javascript
+// 1
+let a = 1
+let b = 1
+let c = 1
+
+// 2
+const foo = Array(3).fill(1)
+let [d, e, f] = foo
+console.log(a, b, c)
+console.log(d, e, f)
+```
+
+구조분해할당은 API 응답 처리 등에 가장 많이 활용됩니다.
+
+---
+
+## 5. 조건문
+
+`if/else`나 `switch` 외에도 논리연산자를 활용한 방식도 있습니다.
+
+```javascript
+// 1 - 논리연산자
+!this.isRowData && this.setRowData()
+
+// 2 - if문
+if (!this.isRowData) {
+  return
+}
+this.setRowData()
+```
+
+코드 리뷰에서 이 두 방식에 대한 의견이 오갔는데, 다음과 같은 결론을 얻었습니다.
+
+![코드 리뷰 댓글](/images/js-server-client-part0-essentials/code-review-comment.jpeg)
+
+- 논리 연산자는 코드가 짧다는 장점이 있지만, 조건이 추가될 경우 복잡도가 늘어납니다.
+- `if`문은 가독성이 좋고, 조건이 추가되더라도 코드 변경이 단순합니다.
+- 유지보수 측면에서 세로로 긴 것보다 가로로 긴 코드가 더 읽기 어렵습니다.
+
+---
+
+## 6. 반복문
+
+`for`문과 `for...in` 외에도 실무에서 종종 사용하는 반복문이 있습니다.
+
+- `while`문: 특정 조건을 충족하기 전까지 무제한으로 반복해야 할 경우
+- `forEach`, `for...of`
+
+```javascript
+let i = 1
+let k = [1, 2, 3]
+k.forEach(item => { i++ })
+console.log(i)
+```
+
+---
+
+## 7. Array(배열) 고급 사용법
+
+배열과 관련하여 사용하는 메서드의 종류는 굉장히 많습니다. 어떤 경우에 `forEach`, `map`, `filter`, `reduce`, `find`를 구분해서 써야 할지 요약하면 다음과 같습니다.
+
+- `forEach`: Array 내 각각의 element에 대해 함수를 실행해야 할 때
+- `map`: 값을 변환하여 새로운 배열을 얻고 싶을 때
+- `filter`: 조건에 맞는 다수의 element를 찾고자 할 때
+- `find`: 조건에 맞는 첫 번째 element를 찾고자 할 때
+- `reduce`: 다수의 element를 통해 하나의 결과 값을 얻어내고자 할 때
+
+이 5가지 메서드는 **기본 배열 값에 영향을 주지 않고** 새로운 배열 또는 값을 얻어낸다는 공통점이 있습니다.
+
+Array를 하나의 배열로 합칠 때는 `concat`을 사용합니다.
+
+```javascript
+const a = [1, 2, 3]
+const b = [2, 3, 4]
+const c = a.concat(b)
+console.log(c)
+```
+
+---
+
+## 8. Object(객체) 고급 사용법
+
+**빈 객체인지 확인하는 방법**
+
+```javascript
+const obj1 = {}
+const obj2 = {a: 1}
+const isEmptyObject = function (obj) {
+  return obj.constructor === Object && Object.keys(obj).length === 0
+}
+```
+
+Object를 병합할 때는 `Object Spread`와 `Object.assign` 두 가지 방식을 활용할 수 있습니다.
+
+---
+
+## 9. 전개 연산자 (Spread Operator)
+
+`Object.assign`과 Spread Operator의 차이를 확인해봅니다.
+
+```javascript
+const fruit = {summer: 'watermelon', autumn: 'persimmon'}
+Object.assign(fruit, {winter: 'sweet potato'})
+console.log(fruit)
+
+const color = {red: '빨강', yellow: '노랑'}
+color = { ...color, green: '초록' }
+console.log(color) // Uncaught TypeError: Assignment to constant variable.
+```
+
+- `Object.assign`으로 처리할 경우 새로운 객체가 추가됩니다.
+- Spread로 처리할 경우 `const`에 대한 에러가 발생합니다. 기존 배열에 추가하려면 변수 선언을 `let`으로 해야 합니다.
+
+---
+
+## 10. 함수와 화살표 함수
+
+### 함수
+
+일반적인 함수로는 **함수 선언식**, **함수 표현식**, **즉시실행함수** 등이 있습니다.
+
+**함수 선언식**
+
+```javascript
+function 함수명() {
+}
+
+function message(word) {
+  console.log(word)
+}
+message('Hello World')
+```
+
+**함수 표현식**
+
+```javascript
+const 함수명 = function() {
+}
+
+const message = function (word) {
+  console.log(word)
+}
+const keyword = message
+
+message('Hello World')
+keyword('Hello Keyword')
+```
+
+**함수 선언식과 함수 표현식의 차이**
+
+- 함수 선언식은 호이스팅이 되지만, 함수 표현식은 호이스팅되지 않습니다.
+- 함수 표현식은 다른 함수에 인수로 전달 가능하지만, 함수 선언식은 불가능합니다.
+- 함수 표현식은 정의된 직후에만 사용 가능하며, 함수 선언식은 전체 스크립트 구문 분석이 완료될 때까지 기다려야 합니다.
+
+즉시실행함수는 최소 한 번만 호출되는 특징을 활용하여 초기화 처리 등에 활용합니다.
+
+### 화살표 함수
+
+화살표 함수를 사용할 경우 굳이 `return`을 작성하지 않아도 값을 자동으로 반환합니다.
+
+```javascript
+const sampleItems = [1, 2, 3]
+const normalFunction = function(items) {
+  return items.map(function(x){
+    return x*2
+  })
+}
+
+// 단일 처리의 경우 중괄호 대신 괄호를 사용하면 return 없이도 됩니다
+const arrowFunctionSingle = (items) => (
+  items.map(x => x*2)
+)
+
+const arrowFunctionMulti = (items) => {
+  return items.map(x => x*2)
+}
+
+console.log(normalFunction(sampleItems))
+console.log(arrowFunctionSingle(sampleItems))
+console.log(arrowFunctionMulti(sampleItems))
+```
+
+화살표 함수는 `this`가 아예 존재하지 않아, 함수 내부에서 선언 시 가장 인접한 `this`에 접근합니다.
+
+```javascript
+const obj = {
+  outer: function() {
+    console.log('outer', this)
+    const innerArrow = () => {
+      console.log('innerArrow', this)
+    }
+    innerArrow()
+  },
+  arrow: () => {
+    console.log('arrowFunction', this)
+  }
+}
+obj.outer()
+obj.arrow()
+```
+
+![화살표 함수 this 바인딩 결과](/images/js-server-client-part0-essentials/arrow-function-this.png)
+
+---
+
+## 11. 클래스
+
+`Class` 또한 `let`과 동일한 형태의 호이스팅 이슈가 있습니다. 클래스를 활용한 대표적인 예시로 Swiper.js 플러그인이 있습니다.
+
+```javascript
+class Swiper {
+  constructor(item = {}) {
+    this.loop = !item.hasOwnProperty('loop') ? true : item.loop
+    this.slidesPerView = item?.slidesPerView || 'auto'
+  }
+}
+const basic = new Swiper()
+const custom = new Swiper({
+  loop: false,
+  slidesPerView: 2
+})
+```
+
+---
+
+## 12. 모듈 패턴
+
+<Callout emoji="💡">
+2020년에 정리했던 내용을 가져왔습니다.
+</Callout>
+
+모듈 패턴은 자바스크립트에서 가장 명망 높은 패턴 중 하나입니다. 이 패턴에는 **임의 모듈 생성**과 **즉시 실행 모듈 생성** 두 가지 유형이 있습니다.
+
+- 모듈은 서로 다른 소스를 조합하여 거대한 프로그램을 만들기 위한 목적으로 사용됩니다.
+- 느슨한 결합성을 제공하여 여러 모듈을 쓸 때 서로 영향을 주지 않습니다.
+- 캡슐화를 통해 private/public과 유사한 구현이 가능합니다.
+
+### 기본 모듈
+
+가장 기본적인 방식은 객체 리터럴을 활용하는 것입니다.
+
+```javascript
+var MyApp = {
+  author: 'MostOneBrush',
+  msg: function (words) {
+    if (!words) {
+      return `There is no words`
+    } else {
+      return `Welcome to ${this.author}'s house`
+    }
+  },
+}
+```
+
+```javascript
+var testNothing, testWord1, testWord2;
+var MyApp = {
+  author: 'MostOneBrush',
+  msg: function (words) {
+    if (!words) {
+      return `There is no words`
+    } else {
+      return `Welcome to ${this.author}'s house`
+    }
+  },
+}
+
+testNothing = MyApp.msg()
+testWord1 = MyApp.msg(1)
+testWord2 = MyApp.msg('Water hyacinth')
+
+console.log(testNothing)  // There is no words
+console.log(testWord1)    // Welcome to MostOneBrush's house
+console.log(testWord2)    // Welcome to MostOneBrush's house
+```
+
+하지만 기본 모듈은 외부에서 `author` 같은 프로퍼티를 직접 변경할 수 있는 위험성이 있습니다.
+
+```javascript
+var MyApp = MyApp || {}
+// ...
+MyApp.author = 'Hacker'
+```
+
+![기본 모듈에서 외부 개입으로 모든 변수에 영향이 가는 결과](/images/js-server-client-part0-essentials/module-basic-result.png)
+
+`testWord1`에서만 변경을 생각했지만, 결과적으로 모든 변수에 영향이 미칩니다. 이로 인해 클로저를 활용하는 임의 모듈 형태의 필요성이 생겼습니다.
+
+### 클로저를 활용한 임의 모듈 생성
+
+```javascript
+var testNothing, testWord1, testWord2
+var MyApp = MyApp || function (words) {
+  var author = 'MostOneBrush'
+  return {
+    msg: function () {
+      if (!words) {
+        return `There is no words`
+      } else {
+        return `Welcome to ${author}'s house`
+      }
+    },
+  }
+}
+
+testNothing = MyApp()
+testWord1 = MyApp(1)
+testWord2 = MyApp(2)
+
+console.log(testNothing.msg()) // There is no words
+console.log(testWord1.msg())   // Welcome to MostOneBrush's house
+console.log(testWord2.msg())   // Welcome to MostOneBrush's house
+```
+
+내부 함수의 변수로 변경하게 되면서 외부에서 이 값을 변경할 수 없게 됩니다. 이것을 **프라이빗 변수**라고 합니다.
+
+![console.log로 찍어도 확인되는 프라이빗 변수](/images/js-server-client-part0-essentials/closure-private-variable.png)
+
+여기서 말하는 private의 의미는 해당 모듈에서만 사용되는 **함수 전용 변수**로, 내부에서 직접 변경하지 않는 한 외부에서는 아무리 변경하려 해도 변하지 않는 고유한 속성을 지닙니다.
+
+```javascript
+var testNothing, testWord1, testWord2
+var MyApp = MyApp || function (words) {
+  var author = 'MostOneBrush'
+  return {
+    msg: function () {
+      if (!words) {
+        return `There is no words`
+      } else {
+        return `Welcome to ${author}'s house`
+      }
+    },
+  }
+}
+
+testNothing = MyApp()
+testWord1 = MyApp(1)
+testWord2 = MyApp(2)
+console.log(testNothing.msg()) // There is no words
+console.log(testWord1.msg())   // Welcome to MostOneBrush's house
+console.log(testWord2.msg())   // Welcome to MostOneBrush's house
+
+var author = 'Hacker'
+console.log(testWord1.msg())   // Welcome to MostOneBrush's house
+```
+
+더 나아가, 원하는 경우에만 author를 변경할 수 있도록 메서드를 제공하는 방식으로 발전시킬 수 있습니다.
+
+```javascript
+var testNothing, testWord1, testWord2
+var MyApp = MyApp || function (name) {
+  if (name) name = 'MostOneBrush'
+  return {
+    author: function (authorName) {
+      name = authorName
+    },
+    msg: function () {
+      if (!name) {
+        return `There is no words`
+      } else {
+        return `Welcome to ${name}'s house`
+      }
+    }
+  }
+}
+
+testNothing = MyApp()
+testWord1 = MyApp(1)
+testWord2 = MyApp('Water hyacinth')
+
+console.log(testNothing.msg()) // There is no words
+console.log(testWord1.msg())   // Welcome to MostOneBrush's house
+console.log(testWord2.msg())   // Welcome to MostOneBrush's house
+
+testWord1.author('Hacker')
+
+console.log(testNothing.msg()) // (1)
+console.log(testWord1.msg())   // (2)
+console.log(testWord2.msg())   // (3)
+```
+
+![임의 모듈 결과: testWord1에서만 author를 변경해도 다른 변수에는 영향이 없습니다](/images/js-server-client-part0-essentials/closure-module-result.png)
+
+이 결과를 통해 3가지를 확인할 수 있습니다.
+
+1. 각각의 변수에 할당된 함수들은 서로에게 영향을 주지 않고 독립적으로 행동합니다.
+2. 메서드를 변경했더라도 재할당 시 원래 값으로 돌아옵니다. **클로저가 자신이 태어났을 때의 환경을 기억**하기 때문입니다.
+3. `return` 안에 들어가 반환되는 메서드에는 외부에서 접근이 가능합니다. 이것이 **public** 요소입니다.
+
+### 즉시실행모듈 생성
+
+즉시실행함수(IIFE)의 기본 형태는 다음과 같습니다.
+
+```javascript
+/* 즉시 실행 함수 (기본) */
+(function() {
+  console.log('즉시 실행 함수')
+}());
+
+/* ES6 arrow function 형태 */
+(() => {
+  console.log('즉시 실행 함수 (화살표)')
+})();
+```
+
+즉시실행함수는 주로 다음의 이유로 사용됩니다.
+
+- 즉시 실행되어야 하지만, 전역 스코프를 오염시키고 싶지 않을 때
+- 한 번의 실행만 필요로 하는 초기화 코드에 사용하고자 할 때
+- 라이브러리 전역 변수의 충돌을 방지하기 위해
+
+```javascript
+var MyApp = MyApp || (function (){
+  var author = 'MostOneBrush'
+  var authorFunc = function (authorName) {
+    author = authorName
+  }
+  var msgFunc = function (name) {
+    if (!name) {
+      return `There is no words`
+    } else {
+      return `Welcome to ${author}'s house`
+    }
+  }
+  return {
+    author: authorFunc,
+    msg: msgFunc
+  }
+})();
+```
+
+### 모듈 생성의 원칙
+
+- 한 모듈에 한 가지 일만 시킵니다.
+- 모듈 자신이 쓸 객체가 필요하다면 의존성 주입 형태로 객체를 제공하는 방안을 고려합니다.
+- 다른 객체 로직을 확장하는 모듈은 해당 로직의 의도가 바뀌지 않도록 분명히 밝힙니다.
+
+---
+
+## 용어 정리
+
+### 네임스페이스
+
+코드 내의 이름 충돌 방지를 위한 패턴입니다.
+
+```javascript
+// 해당 애플리케이션에서만 사용할 수 있는 모든 객체를 담아 넣은
+// 전역 객체를 선언하여 이름 공간처럼 활용합니다.
+var MyApp = MyApp || {}
+```
+
+단순히 `var MyApp = {}`으로 선언할 경우, 외부 스크립트에서 동일한 이름의 변수를 선언하면 기존 값이 변질될 수 있습니다.
+
+![외부 스크립트에서 MyApp 변수가 변질된 결과](/images/js-server-client-part0-essentials/myapp-namespace-console.png)
+
+![논리연산자를 활용한 네임스페이스 패턴으로 변질 방지](/images/js-server-client-part0-essentials/myapp-namespace-changed.png)
+
+`var MyApp = MyApp || {}`을 사용하면 이미 선언된 `MyApp`이 있을 경우 그 값을 유지합니다.
+
+### 캡슐화
+
+객체의 외부에서 접근할 수 없게 만드는 외부에 감춰진 속성이나 메서드를 의미합니다(은닉성). 이 캡슐화를 통해 변질되지 않고 통제가 가능하기에 모듈 패턴을 선호합니다.
+
+### 스코프
+
+스코프(Scope)는 **유효범위**를 뜻합니다.
+
+1. 서로 연관 있는 변수 및 함수는 서로 어느 범위까지 영향을 주는가
+2. 선언된 변수는 어디까지 영향을 주는가 (지역변수, 전역변수 등)
+
+### 클로저
+
+클로저는 중첩된 함수에서 나오는 개념입니다.
+
+```javascript
+function outerFunc () {
+  var x = 10
+  var innerFunc = function () { console.log(x); };
+  return innerFunc;
+}
+
+var a = outerFunc()
+a()
+```
+
+외부 함수 `outerFunc`의 내부에서 존재했지만 `return`을 통해 함수 외부로 반환된 내부함수 `innerFunc`은, 처음에 자신이 생성되었던 환경(Lexical environment)을 기억하고 그 환경에 다시 접근할 수 있습니다. 이러한 내부함수를 **클로저**라고 합니다.
+
+![outerFunc에 생성된 [[Scopes]] 프로퍼티](/images/js-server-client-part0-essentials/closure-scopes-property.png)
+
+요약하자면, **자신의 고유한 환경이나 상태를 기억해서 본질적인 성질이 변하지 않지만, 환경 변화에 맞춰 적응하고 자신의 상태를 업데이트할 수 있는 내부 함수를 클로저**라고 합니다.

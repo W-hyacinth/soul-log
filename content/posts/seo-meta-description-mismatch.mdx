@@ -1,0 +1,54 @@
+---
+title: "검색엔진(SEO)에 내가 설정한 meta description과 다르게 노출되는 사례 (Google)"
+description: "Google 검색 결과에서 설정한 meta description과 다른 내용이 노출되는 현상의 원인과 해결 방법을 공유합니다."
+date: 2021-08-03
+tags: ["SEO", "Meta Tag"]
+cover: null
+---
+
+약 1년간 SEO 관련 업무를 진행하며 경험한 사례를 공유합니다. Google Lighthouse에서 SEO 지표가 100이지만, 실제 검색 결과는 설정한 meta description과 다르게 노출되는 현상이 발생했습니다.
+
+## 1. H 서비스 검색 결과
+
+검색 결과에서 설정한 description과 다른 내용이 노출되었습니다.
+
+![H 서비스 검색 결과 1](/images/seo-meta-description-case/h-service-search-1.png)
+
+그러나 사명과 서비스를 합쳐서 검색하면 정상적으로 description이 노출되었습니다.
+
+![H 서비스 검색 결과 2](/images/seo-meta-description-case/h-service-search-2.png)
+
+![H 서비스 검색 결과 3](/images/seo-meta-description-case/h-service-search-3.png)
+
+## 2. S 서비스 검색 결과
+
+키워드별로 다르게 노출되는 현상을 확인했습니다.
+
+![S 서비스 검색 결과 1](/images/seo-meta-description-case/s-service-search-1.png)
+
+![S 서비스 검색 결과 2](/images/seo-meta-description-case/s-service-search-2.png)
+
+![S 서비스 검색 결과 3](/images/seo-meta-description-case/s-service-search-3.png)
+
+![S 서비스 검색 결과 4](/images/seo-meta-description-case/s-service-search-4.png)
+
+![S 서비스 검색 결과 5](/images/seo-meta-description-case/s-service-search-5.png)
+
+## Google의 description 노출 패턴 가설
+
+1. 검색 키워드가 description에 모두 포함되면 해당 description 노출
+2. 키워드가 포함되지 않거나 더 적절한 컨텐츠가 있으면 컨텐츠 내용 노출
+3. 부분적으로 일치하면 description과 컨텐츠 혼합 노출
+4. 어느 쪽에도 포함되지 않으면 설정된 description 노출
+
+## 3. 결과
+
+description에 서비스명을 포함시킨 후 검색하니 설정된 description이 정상 노출되었습니다.
+
+![개선 결과](/images/seo-meta-description-case/result.png)
+
+## 결론
+
+1. Meta description에는 서비스명을 포함하고 80자 이내 작성 권장
+2. 예상 검색 키워드를 description에 포함하기
+3. Vue.js 사용 시 정적 페이지는 Prerender, 동적 페이지는 SSR 고려 필수. SPA는 신규 사이트 인덱싱이 지연될 수 있음

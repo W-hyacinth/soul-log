@@ -1,0 +1,652 @@
+---
+title: "IE11을 지원하는 Vuejs 환경에서의 Swiper 적용기"
+description: "IE11을 지원해야 하는 Vue.js 2.x 환경에서 SwiperJS를 적용하는 방법과, 실무에서 활용할 수 있는 Swiper 사례를 공유합니다."
+date: 2021-08-02
+tags: ["Vue.js", "Swiper", "Frontend", "IE11"]
+cover: null
+---
+
+## Overview
+
+안녕하세요, 브랜디 프론트엔드 개발자 최한솔입니다.
+
+이번 글에서는 IE11을 지원해야 하는 Vue.js 2.x 환경에서 SwiperJS를 적용하는 방법과, 실무에서 활용할 수 있는 Swiper 사례를 공유하려고 합니다.
+
+2022년 6월에 IE11 지원이 공식 종료될 예정이지만, 이 글을 작성하던 2021년 당시에는 여전히 IE11 대응이 필요한 상황이었습니다. IE11 지원이 종료되더라도 Swiper를 Vue.js 환경에서 활용하는 사례 자체는 참고하실 수 있을 거라 생각합니다.
+
+## Contents
+
+1. 현재의 브랜디 지원 환경
+2. 브랜디 상황에 맞게 Swiper를 적용해보자
+3. 알아두면 도움 될지도 모를 Swiper 사례
+
+---
+
+## 1. 현재의 브랜디 지원 환경
+
+브랜디에서 지원하고 있는 환경은 다음과 같습니다.
+
+- **OS**: Windows, MacOS, iOS 13 이상, AOS (태블릿 미지원)
+- **브라우저**: IE 11 이상, Edge 11 이상
+
+브랜디는 반응형 서비스가 많다 보니, 다양한 슬라이더 라이브러리를 혼용하여 사용하고 있었습니다. 이를 통합하기 위한 작업을 진행하면서 Swiper를 도입하게 되었습니다.
+
+그런데 문제는 Vue.js 2.x 환경이라는 것이었습니다. SwiperJS 공식 문서를 보면, Vue.js 지원은 Swiper 6 버전 이상부터이며, 이는 Vue 3를 대상으로 합니다. 즉, Vue.js 2.x는 Swiper 공식 지원 대상이 아닙니다.
+
+> *[이미지 누락: SwiperJS 공식 문서에서 Vue.js 2.x가 지원 대상이 아님을 보여주는 스크린샷]*
+
+이전에는 `index.html`에 script 태그로 Swiper를 직접 연동하는 방식으로 임시 해결했었지만, Vue 환경에서 컴포넌트 기반으로 사용하기에는 불편한 점이 많았습니다.
+
+---
+
+## 2. 브랜디 상황에 맞게 Swiper를 적용해보자
+
+### 2-1. 패키지 설치
+
+```bash
+npm install swiper@4.4.1 vue-awesome-swiper@3 --save
+```
+
+여기서 주의할 점이 몇 가지 있습니다.
+
+- **Swiper 5 버전부터 IE를 지원하지 않습니다.** IE11을 지원해야 하는 환경이라면 반드시 Swiper 4 버전을 사용해야 합니다.
+- **vue-awesome-swiper 3 버전이 Swiper 4에 대응**됩니다. vue-awesome-swiper는 Vue.js에서 Swiper를 컴포넌트 형태로 사용할 수 있게 해주는 래퍼 라이브러리입니다.
+- Swiper 4 버전 중에서도 **4.4.1을 명시적으로 지정**하는 이유가 있습니다. 4.5.1 버전에서 Thumbs Gallery 기능을 사용할 때, 활성화된 슬라이드를 제대로 인식하지 못하는 이슈가 있었기 때문입니다.
+
+### 2-2. Vue.js에 적용하기
+
+설치가 완료되면 다음과 같이 Vue 컴포넌트에서 사용할 수 있습니다.
+
+```jsx
+// css의 경우, 전역으로 불러오시는 것이 편합니다
+import 'swiper/dist/css/swiper.css'
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  }
+}
+```
+
+CSS는 전역에서 한 번만 import 해두면 이후 어느 컴포넌트에서든 Swiper 스타일이 적용됩니다. vue-awesome-swiper에서 `swiper`와 `swiperSlide` 컴포넌트를 가져와 등록해주면 기본적인 설정은 끝입니다.
+
+### 2-3. IE 지원 종료 시 패키지 버전 업그레이드 하기
+
+추후 IE11 지원이 종료되면, 더 최신 버전의 Swiper로 업그레이드할 수 있습니다. 기존 패키지를 제거하고 새로 설치합니다.
+
+```bash
+npm uninstall swiper vue-awesome-swiper --save
+npm install swiper@5.3.7 vue-awesome-swiper --save
+```
+
+vue-awesome-swiper 4 버전에서는 컴포넌트명의 첫 글자가 **대문자로 변경**되었습니다. 기존 `swiper`, `swiperSlide`에서 `Swiper`, `SwiperSlide`로 바뀌었으니 주의가 필요합니다.
+
+또한 Swiper 6 버전에서는 Pagination 관련 이슈가 있어, **5.3.7 버전을 권장**합니다.
+
+```jsx
+import { Swiper, SwiperSlide, directive } from 'vue-awesome-swiper'
+
+// import style (<= Swiper 5.x)
+import 'swiper/css/swiper.css'
+
+export default {
+  components: {
+    Swiper,
+    SwiperSlide
+  },
+  directives: {
+    swiper: directive
+  }
+}
+```
+
+---
+
+## 3. 알아두면 도움 될지도 모를 Swiper 사례
+
+실무에서 Swiper를 적용하면서 만났던 다양한 요구사항과 그에 대한 해결 방법을 공유합니다.
+
+### 3-1. 컨텐츠의 수량에 따라 정렬이 달라지는 Swiper
+
+탭 영역을 Swiper로 구현하는 경우를 생각해보겠습니다. 탭의 수가 적어서 화면 안에 모두 들어올 때는 **중앙정렬**이 되어야 하고, 탭이 많아서 화면을 넘어가면 **좌측정렬과 함께 스와이핑이 가능**해야 합니다. 그리고 넘어가는 영역에는 그라데이션 효과를 넣어 연속성을 표현합니다.
+
+정리하면 다음과 같은 요구사항입니다.
+
+1. 컨텐츠 수량에 따라 좌측/중앙정렬이 자동으로 변경
+2. 화면을 넘어가는 영역에 그라데이션 처리
+3. 클릭 시 탭 활성화 UI 변경
+4. 활성화된 탭이 좌측으로 자연스럽게 이동
+
+> *[이미지 누락: 탭 영역의 요구사항을 시각적으로 정리한 이미지 - 수량이 적을 때 중앙정렬, 많을 때 좌측정렬+그라데이션 효과]*
+
+#### 기본 Swiper 설정
+
+먼저 기본적인 필터 스와이퍼의 구조를 살펴보겠습니다.
+
+핵심이 되는 옵션은 `centerInsufficientSlides: true`입니다. 이 옵션을 사용하면 슬라이드의 수가 충분하지 않을 때 자동으로 중앙정렬이 됩니다. 슬라이드가 화면을 넘어가면 기본적으로 좌측정렬이 되면서 스와이핑이 활성화됩니다.
+
+```jsx
+<template>
+  <div class="filter-swiper">
+    <swiper
+      ref="filterSwiper"
+      :options="filterSwiperOption"
+    >
+      <swiper-slide
+        v-for="(filter, index) in filterList"
+        :key="index"
+      >
+        <span>{{ filter.name }}</span>
+      </swiper-slide>
+    </swiper>
+  </div>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  },
+  data() {
+    return {
+      filterList: [],
+      filterSwiperOption: {
+        slidesPerView: 'auto',
+        centerInsufficientSlides: true
+      }
+    }
+  },
+  computed: {
+    filterSwiper() {
+      return this.$refs.filterSwiper.$swiper
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.filter-swiper {
+  .swiper-slide {
+    width: auto;
+    span {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  }
+}
+</style>
+```
+
+`slidesPerView: 'auto'`로 설정하면 각 슬라이드의 너비가 내용에 따라 자동으로 결정됩니다. 여기에 `centerInsufficientSlides: true`를 함께 사용하면, 슬라이드 전체 너비가 Swiper 컨테이너보다 작을 경우 자동으로 중앙정렬됩니다.
+
+> *[GIF 누락: centerInsufficientSlides 적용 결과 - 탭이 적을 때 중앙정렬되지만, 좌측 여백 없이 붙어있는 모습]*
+
+탭 중앙정렬은 성공했지만, 탭 컨텐츠가 왼쪽부터 너무 여백 없이 붙어있는 것을 확인할 수 있습니다. 이것을 보완하기 위해 시작점 위치를 조정한 뒤에 gradient 효과를 넣습니다.
+
+#### 그라데이션 효과 추가하기
+
+스와이핑이 가능한 상태에서 화면 양쪽 끝에 그라데이션 효과를 주어 컨텐츠가 더 있다는 것을 시각적으로 표현합니다. 컨테이너에 padding을 주고, `::before`와 `::after` 가상 요소를 사용합니다.
+
+```jsx
+<template>
+  <div
+    class="filter-swiper"
+    :class="{ 'is-overview': isOverview }"
+  >
+    <swiper
+      ref="filterSwiper"
+      :options="filterSwiperOption"
+    >
+      <swiper-slide
+        v-for="(filter, index) in filterList"
+        :key="index"
+      >
+        <span>{{ filter.name }}</span>
+      </swiper-slide>
+    </swiper>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.filter-swiper {
+  position: relative;
+  padding: 0 20px;
+
+  &.is-overview {
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      z-index: 1;
+    }
+    &::before {
+      left: 0;
+      background: linear-gradient(to right, #fff, transparent);
+    }
+    &::after {
+      right: 0;
+      background: linear-gradient(to left, #fff, transparent);
+    }
+  }
+}
+</style>
+```
+
+`is-overview` 클래스가 있을 때만 그라데이션이 표시되도록 하였습니다. 이 클래스는 뒤에서 설명할 `isOverview` computed 속성에 의해 제어됩니다.
+
+swiper-container 기준으로 여백을 추가하면, 해당 여백 기준으로 슬라이드의 시작점과 종점이 변경됩니다. 이것을 활용하여 가상 선택자에 그라데이션 효과를 넣어주면 자연스럽게 탭이 더 연장선상에 있다는 것을 인지할 수 있습니다.
+
+> *[GIF 누락: 그라데이션 효과가 적용된 탭 스와이퍼 - 양쪽 끝에 그라데이션이 표시되어 컨텐츠 연속성을 표현하는 모습]*
+
+추가적으로 여백을 활용해서 슬라이드의 시작점과 종점을 변경하는 방법을 잘 사용할 경우, 컨테이너 영역에 잡힌 여백을 활용해서 슬라이드 시작점이 완전 중앙이거나 좌측이 아닌 슬라이드에 대해서도 구현할 수 있습니다.
+
+> *[GIF 누락: centerInsufficientSlides 없이 container 여백을 활용한 슬라이드 시작점 조절 예시]*
+
+#### 클릭 시 탭 활성화 및 이동
+
+탭을 클릭했을 때 활성화 UI를 변경하고, 활성화된 탭이 자연스럽게 좌측으로 이동하도록 하려면 Swiper의 `on` 이벤트와 `slideTo` 메서드를 활용합니다.
+
+참고로 Swiper에서는 클릭 시 `swiper-slide-active`라는 class가 자동으로 붙지만, 이 class는 클릭한 슬라이드가 아닌 Viewport 기준 가장 왼쪽에 위치하는 슬라이드에 붙는다는 특징이 있습니다. 그로 인해 다음과 같은 현상이 발생합니다.
+
+> *[GIF 누락: swiper-slide-active class가 스와이핑 시 가장 왼쪽 슬라이드에 자동으로 붙는 모습]*
+
+> *[GIF 누락: 마지막 슬라이드 도달 시 swiper-slide-active가 더이상 넘어가지 않는 현상]*
+
+따라서 `swiper-slide-active`를 활용하는 것은 어렵다고 판단하여, 클릭 시 `aria-selected` 속성을 추가하여 구분값으로 활용했습니다.
+
+```jsx
+<template>
+  <div
+    class="filter-swiper"
+    :class="{ 'is-overview': isOverview }"
+  >
+    <swiper
+      ref="filterSwiper"
+      :options="filterSwiperOption"
+    >
+      <swiper-slide
+        v-for="(filter, index) in filterList"
+        :key="index"
+        :class="{ active: activeIndex === index }"
+      >
+        <span @click="activeTab(index)">{{ filter.name }}</span>
+      </swiper-slide>
+    </swiper>
+  </div>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  },
+  data() {
+    return {
+      filterList: [],
+      activeIndex: 0,
+      filterSwiperOption: {
+        slidesPerView: 'auto',
+        centerInsufficientSlides: true,
+        on: {
+          click: function () {
+            // Swiper 인스턴스의 clickedIndex를 통해 클릭된 슬라이드 인덱스를 얻을 수 있습니다
+          }
+        }
+      }
+    }
+  },
+  computed: {
+    filterSwiper() {
+      return this.$refs.filterSwiper.$swiper
+    }
+  },
+  methods: {
+    activeTab(index) {
+      this.activeIndex = index
+    }
+  }
+}
+</script>
+```
+
+#### 최종 완성 버전
+
+이제 모든 요구사항을 합쳐서 최종 코드를 완성합니다. `slideTo` 대신 `slideToLoop`이나 직접 `translate`를 조작하지 않고, Swiper 4의 `slideTo` 메서드를 활용하여 활성화된 탭으로 자연스럽게 이동합니다. `isOverview` computed 속성으로 슬라이드 전체 너비가 컨테이너를 넘는지 판단합니다.
+
+사실 Swiper에서는 슬라이드를 클릭 시 해당 슬라이드를 이동시키는 `slideToClickedSlide`라는 파라미터를 제공하고 있습니다. 그럼에도 Swiper의 메서드인 `slideTo`를 활용해서 넣은 이유는 `slideToClickedSlide`에서 클릭을 했음에도 슬라이드가 되지 않는 버그가 특정한 조건에서 발생하기 때문입니다.
+
+> *[GIF 누락: slideToClickedSlide로 구현 시 경계선에 위치할 때 슬라이드 이동이 발생하지 않는 버그 (6666 탭 주목)]*
+
+> *[GIF 누락: slideTo 메서드로 구현 시 경계선에서도 확실하게 이동하는 모습]*
+
+```jsx
+<template>
+  <div
+    class="filter-swiper"
+    :class="{ 'is-overview': isOverview }"
+  >
+    <swiper
+      ref="filterSwiper"
+      :options="filterSwiperOption"
+    >
+      <swiper-slide
+        v-for="(filter, index) in filterList"
+        :key="index"
+        :class="{ active: activeIndex === index }"
+      >
+        <span @click="activeTab(index)">{{ filter.name }}</span>
+      </swiper-slide>
+    </swiper>
+  </div>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  },
+  data() {
+    return {
+      filterList: [],
+      activeIndex: 0,
+      filterSwiperOption: {
+        slidesPerView: 'auto',
+        centerInsufficientSlides: true,
+        on: {
+          click: function () {
+            // click event
+          }
+        }
+      }
+    }
+  },
+  computed: {
+    filterSwiper() {
+      return this.$refs.filterSwiper.$swiper
+    },
+    isOverview() {
+      if (!this.filterSwiper || !this.filterSwiper.slides) return false
+      const slidesWidth = Array.from(this.filterSwiper.slides).reduce(
+        (acc, slide) => acc + slide.offsetWidth,
+        0
+      )
+      return slidesWidth > this.filterSwiper.width
+    }
+  },
+  methods: {
+    activeTab(index) {
+      this.activeIndex = index
+      this.slideMoveTo(index)
+    },
+    slideMoveTo(index) {
+      if (this.isOverview) {
+        this.filterSwiper.slideTo(index)
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.filter-swiper {
+  position: relative;
+  padding: 0 20px;
+
+  .swiper-slide {
+    width: auto;
+    span {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    &.active span {
+      background-color: #000;
+      color: #fff;
+      border-color: #000;
+    }
+  }
+
+  &.is-overview {
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      z-index: 1;
+    }
+    &::before {
+      left: 0;
+      background: linear-gradient(to right, #fff, transparent);
+    }
+    &::after {
+      right: 0;
+      background: linear-gradient(to left, #fff, transparent);
+    }
+  }
+}
+</style>
+```
+
+`isOverview` computed 속성은 각 슬라이드의 `offsetWidth`를 합산하여 Swiper 컨테이너의 전체 너비(`this.filterSwiper.width`)와 비교합니다. 슬라이드 전체 너비가 컨테이너보다 크면 `true`를 반환하여 그라데이션이 표시되고, 스와이핑이 의미 있는 상태임을 나타냅니다.
+
+`activeTab` 메서드는 클릭된 탭의 인덱스를 `activeIndex`에 저장하고, `slideMoveTo`를 호출합니다. `slideMoveTo`는 `isOverview`가 `true`일 때만 `slideTo`를 실행하여, 슬라이드가 충분하지 않은 상태에서 불필요한 이동이 발생하지 않도록 합니다.
+
+위의 조건에 맞춰 만들고 나니 Swiper는 기본적으로 스와이프 기능이 들어가 있는데 컨텐츠가 적은 경우에도 탭을 스치듯이 누를 경우 움찔움찔하며 동작하는 것이 시각적으로 불편해졌습니다.
+
+> *[GIF 누락: 컨텐츠가 적은데도 스와이핑이 격렬하게 이뤄지는 불편한 모습]*
+
+중앙에 위치할 경우에는 움직이지 않도록 하는 추가적인 작업이 필요해보입니다. Viewport 너비에 따라 스와이프가 되도록 옵션 및 설정을 추가합니다.
+
+> *[GIF 누락: Viewport 너비 기반 스와이프 제어 적용 후 - 탭이 적을 때 흔들리지 않는 안정적인 동작]*
+
+### 3-2. 화면 Viewport에 따라 서로 다른 effect를 가진 Swiper
+
+모바일에서는 **fade effect와 loop**를 적용하고, PC에서는 **3개씩 보이는 슬라이드**를 적용하는 경우를 생각해보겠습니다.
+
+고정된 위치에서 텍스트와 이미지만 fade될 경우, 좌우로 스와이핑 될 때마다 유저의 시선이 계속해서 움직여야 하는 슬라이드보다는, fade로 변화를 주는 것이 훨씬 더 안정적으로 노출됩니다.
+
+> *[GIF 누락: 텍스트와 목업이 함께 좌우로 슬라이드 되는 모습]*
+
+> *[GIF 누락: 고정된 위치에서 텍스트와 이미지만 fade 전환되는 안정적인 모습]*
+
+반면에 PC 화면은 보여줄 수 있는 화면 사이즈가 크기 때문에 컨텐츠를 나열해서 보여주는 것이 효과적이라 fade보다는 기본 slide를 선호하는 편입니다.
+
+> *[이미지 누락: Swiper의 breakpoints 옵션 관련 설정 화면]*
+
+Swiper에서는 반응형 옵션인 breakpoints를 제공하고 있기 때문에 쉽게 적용할 줄 알았는데, 문제가 생겼습니다. breakpoints만 믿고 있었는데, 슬라이드가 정상적으로 노출되지 않는 겁니다.
+
+> *[이미지 누락: breakpoints로 effect 변경이 가능한지 문의한 GitHub Issue - Swiper 제작자가 불가능하다고 답변한 내용]*
+
+> *[이미지 누락: 17년도에도 동일한 질문이 올라왔지만 제작자가 destroy 후 reinit 방법을 안내한 내용]*
+
+단순히 breakpoints 옵션으로 해결하기 어려운 이유는, effect 자체가 완전히 달라지기 때문입니다. 이 경우 Vue.js의 `keep-alive`와 dynamic component(`is`)를 활용하여, viewport에 따라 서로 다른 Swiper 컴포넌트를 렌더링하는 방식으로 해결할 수 있습니다.
+
+#### 부모 컴포넌트
+
+```jsx
+<template>
+  <div class="swiper-wrapper">
+    <keep-alive>
+      <component
+        :is="swiperComponent"
+        :slide-list="slideList"
+      />
+    </keep-alive>
+  </div>
+</template>
+
+<script>
+import MobileSwiper from './MobileSwiper.vue'
+import PcSwiper from './PcSwiper.vue'
+
+export default {
+  components: {
+    MobileSwiper,
+    PcSwiper
+  },
+  data() {
+    return {
+      slideList: [],
+      windowWidth: window.innerWidth
+    }
+  },
+  computed: {
+    swiperComponent() {
+      return this.windowWidth <= 768 ? 'MobileSwiper' : 'PcSwiper'
+    }
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize)
+  },
+  methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth
+    }
+  }
+}
+</script>
+```
+
+부모 컴포넌트에서 `windowWidth`를 감지하고, 768px 이하이면 `MobileSwiper`, 그보다 크면 `PcSwiper`를 렌더링합니다. `keep-alive`로 감싸서 컴포넌트가 전환될 때 상태가 유지되도록 합니다.
+
+#### 자식 컴포넌트 (MobileSwiper / PcSwiper)
+
+```jsx
+<!-- MobileSwiper.vue -->
+<template>
+  <swiper :options="mobileOption">
+    <swiper-slide
+      v-for="(slide, index) in slideList"
+      :key="index"
+    >
+      <div class="slide-content">
+        <span>{{ slide.title }}</span>
+      </div>
+    </swiper-slide>
+  </swiper>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  },
+  props: {
+    slideList: {
+      type: Array,
+      default: () => []
+    }
+  },
+  data() {
+    return {
+      mobileOption: {
+        effect: 'fade',
+        loop: true,
+        autoplay: {
+          delay: 3000,
+          disableOnInteraction: false
+        },
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true
+        }
+      }
+    }
+  }
+}
+</script>
+
+<!-- PcSwiper.vue -->
+<template>
+  <swiper :options="pcOption">
+    <swiper-slide
+      v-for="(slide, index) in slideList"
+      :key="index"
+    >
+      <div class="slide-content">
+        <span>{{ slide.title }}</span>
+      </div>
+    </swiper-slide>
+    <div class="swiper-button-prev" slot="button-prev"></div>
+    <div class="swiper-button-next" slot="button-next"></div>
+  </swiper>
+</template>
+
+<script>
+import { swiper, swiperSlide } from 'vue-awesome-swiper'
+
+export default {
+  components: {
+    swiper,
+    swiperSlide
+  },
+  props: {
+    slideList: {
+      type: Array,
+      default: () => []
+    }
+  },
+  data() {
+    return {
+      pcOption: {
+        slidesPerView: 3,
+        spaceBetween: 20,
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev'
+        }
+      }
+    }
+  }
+}
+</script>
+```
+
+MobileSwiper는 fade effect와 loop, autoplay를 적용하고, PcSwiper는 한 번에 3개씩 보이는 슬라이드와 좌우 네비게이션 버튼을 적용합니다. 이렇게 하면 viewport에 따라 완전히 다른 Swiper 설정을 깔끔하게 분리하여 관리할 수 있습니다.
+
+`keep-alive`는 컴포넌트의 상태를 보존하고 재렌더링을 피할 수 있습니다. 예를 들어 이미지 슬라이더가 100개인 슬라이더를 보던 중에 20번째의 이미지에서 769 이상의 환경 변화를 경험하게 되더라도, 비활성화된 모바일 조건의 컴포넌트는 비활성 되기 직전에 보고 있던 20번째 이미지가 현재 보고 있던 이미지라는 상태값을 보존하게 됩니다.
+
+> *[GIF 누락: 뷰포트 전환 시 keep-alive로 상태가 보존되어, 모바일/PC 간 전환해도 보던 슬라이드 위치가 유지되는 모습]*
+
+> *[GIF 누락: 뷰포트가 달라질 경우 다른 옵션 값이 적용되는 모습과, 비활성화 되기 전 마지막 값을 저장하는 동작 확인]*
+
+물론, Swiper에서 제공하는 breakpoints로 분기할 때처럼 완전히 상태값을 공유하는 것이 아니기 때문에 뷰포트마다 보는 값이 달라진다는 점에서 완벽한 대안이 될 수는 없겠지만, `keep-alive`는 컴포넌트의 상태를 보존하고 재렌더링을 피하기 때문에 매번 destroy 후 재생성하는 방식보다 훨씬 효과적입니다.
+
+---
+
+## 마치며
+
+이 글은 IE11을 지원해야 했던 시기에 Vue.js 2.x 환경에서 Swiper를 어떻게 활용했는지에 대한 기록입니다. IE11 지원이 종료된 지금도 Swiper와 Vue.js를 함께 사용하는 패턴 자체는 여전히 참고할 만한 부분이 있을 것이라 생각합니다.
+
+- **원문 출처**: [http://labs.brandi.co.kr/2021/08/02/choihs.html](http://labs.brandi.co.kr/2021/08/02/choihs.html) (현재 서비스 종료)
+- 원본 이미지 및 GIF는 서버 종료로 인해 복구되지 않아 설명으로 대체하였습니다.

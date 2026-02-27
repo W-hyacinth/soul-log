@@ -1,0 +1,455 @@
+---
+title: "React 학습 4주차 — TypeScript 기본 타입부터 제네릭까지"
+description: "스터디에서 TypeScript 핸드북을 학습하며 정리한 내용입니다. 기본 타입, 인터페이스, 리터럴 타입, 유니언/교차 타입, 제네릭을 다룹니다."
+date: 2024-09-30
+tags: ["TypeScript", "React", "Frontend", "학습"]
+cover: null
+---
+
+<Callout emoji="💡">
+현재 함수, 제네릭, 클래스 관련 내용이 일부 부실합니다. 추가 예정입니다.
+</Callout>
+
+이번 주차는 TypeScript 핸드북을 바탕으로 기본 타입부터 제네릭까지 학습한 내용을 정리했습니다.
+
+---
+
+## 기본 타입
+
+### Boolean
+
+JavaScript에서도 사용하는 기본 데이터 타입으로, `true` / `false` 값을 갖습니다.
+
+```typescript
+let isDone: boolean = false
+```
+
+### Number
+
+TypeScript에서는 16진수, 10진수뿐만 아니라 ECMAScript 2015에서 도입된 2진수, 8진수 리터럴도 지원합니다.
+
+JavaScript에서 16진수를 표현하려면 영문이 포함된 상태로 쓰면 Syntax 에러가 발생합니다. 16진수를 쓰려면 String으로 처리해야 합니다.
+
+### String
+
+JavaScript와 동일하게 일반 문자열 외에, 백틱을 활용한 템플릿 리터럴도 문자열로 간주합니다.
+
+### Array
+
+JavaScript에서는 배열이란 타입이 별도로 없고 `typeof []`는 `object`를 반환합니다. TypeScript에서는 두 가지 방식으로 선언할 수 있습니다.
+
+```typescript
+// 방식 1: 타입 뒤에 [] 붙이기
+let list: number[] = [1, 2, 3]
+
+// 방식 2: 제네릭 배열 타입
+let list: Array<number> = [1, 2, 3]
+```
+
+두 방식의 차이점이 궁금해서 찾아봤는데, TypeScript 3.4 릴리스 노트에서 다음과 같이 설명합니다.
+
+> `number[]` is a shorthand version of `Array<number>`
+
+[TypeScript 3.4 릴리스 노트](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#a-new-syntax-for-readonlyarray)
+
+1번 방식이 2번 방식의 축약형이며, 성능 차이는 없습니다.
+
+### Tuple
+
+JavaScript에는 없는 타입으로, 요소의 타입과 개수가 고정된 배열을 표현합니다. 요소들의 타입이 모두 같을 필요는 없습니다.
+
+```typescript
+let x: [string, number]
+x = ["hello", 10]  // (O)
+x = [10, "hello"]  // (X)
+x[2] = "world"     // (X)
+```
+
+실무에서는 배열을 변형하지 않고 할당 후 참조만 할 때 활용할 수 있을 것 같습니다. `push` 등으로 배열을 변형하면 오류를 반환하기 때문입니다.
+
+### Enum
+
+JavaScript에는 없는 타입으로, 특정 값의 집합을 표현합니다. 선언된 속성은 기본적으로 숫자 값을 가지며, 초기값을 선언하지 않으면 0부터 시작합니다.
+
+```typescript
+enum Direction {
+    Up,    // 0
+    Down,  // 1
+    Left,  // 2
+    Right  // 3
+}
+```
+
+초기값을 지정할 수 있으며, 첫 번째 값만 선언해도 이후 값은 자동으로 이어지지만, 명시적으로 선언하는 편이 가독성 면에서 좋습니다.
+
+```typescript
+enum Direction {
+    Up = 10,
+    Down = 11,
+    Left = 12,
+    Right = 13
+}
+```
+
+**enum은 key로도, value로도 조회가 가능합니다.** JavaScript에서는 value로 key를 찾으려면 `Object.entries`로 교차 탐색해야 했는데, 이 점이 유용합니다.
+
+![enum의 key/value 양방향 조회](/images/react-learning-week4-typescript/enum-key-value-lookup.png)
+
+enum은 컴파일 시 아래와 같은 JavaScript 코드로 변환됩니다.
+
+```javascript
+(function (Direction) {
+    Direction[Direction["Up"] = 11] = "Up";
+    Direction[Direction["Down"] = 12] = "Down";
+    Direction[Direction["Left"] = 13] = "Left";
+    Direction[Direction["Right"] = 14] = "Right";
+})(Direction || (Direction = {}));
+```
+
+**value 중복 시 동작** — 궁금해서 테스트해 봤습니다. value가 중복되면 마지막에 선언된 key를 반환합니다.
+
+```typescript
+enum Direction {
+    Up = 13,
+    Down,     // 암시적으로 14
+    Left = 14,
+    Right = 14,
+}
+// Direction[14] → "Right"
+```
+
+**enum 내부 참조와 교차 참조도 가능합니다.**
+
+```typescript
+enum Direction {
+    Up = 10,
+    Down = Up - 1,   // 9
+    Left = 11,
+    Right = Left + 1 // 12
+}
+
+enum Border {
+    Top = Direction.Up,     // 10
+    Bottom = Direction.Down // 9
+}
+```
+
+단, 변수 타입 선언 시에는 값이 같더라도 다른 enum의 값을 대입할 수 없습니다.
+
+```typescript
+let a: Direction.Up
+
+a = 10          // (O)
+a = Border.Top  // (X) Type 'Border.Top' is not assignable to type 'Direction.Up'
+```
+
+**`const enum`을 사용하면 컴파일 결과를 줄일 수 있습니다.**
+
+![const enum 사용 시 컴파일 결과 비교](/images/react-learning-week4-typescript/const-enum-compile-result.png)
+
+실무에서 enum을 활용했던 사례들입니다.
+- 디바이스 구분 타입 (사용자 디바이스 트래킹)
+- 메인 배너 관련 타입
+- 기획전(이벤트) 유형 타입 — response의 이벤트 유형에 따라 화면이 달라지는 경우
+- 기획전 내 버튼 타입 — 쿠폰 다운로드 / 페이지 이동 / 포인트 지급 구분
+- SNS 로그인 타입 — 각 SNS별 아이콘 및 텍스트 지정
+
+### Any
+
+어떤 타입이든 허용하는 타입으로, 컴파일도 통과합니다. 사실상 TypeScript를 JavaScript처럼 사용하는 것과 다름없어서, 마이그레이션 단계나 TypeScript 입문 시 타입 에러에 지친 경우 남발하게 되기 쉽습니다.
+
+### Unknown
+
+타입을 지정하기 애매할 때 사용합니다. `any`는 TypeScript의 타입 오류를 피해가 버리므로, 일부 문서에서는 `any` 대신 `unknown` 사용을 권장하기도 합니다.
+
+### Void
+
+어떤 타입도 존재할 수 없음을 나타내는 타입으로 `any`와 상반됩니다. 반환값이 없는 함수에 주로 사용합니다.
+
+### Null & Undefined
+
+JavaScript에서 `undefined`는 `undefined` 타입을 갖고, `null`은 `object` 타입을 반환합니다.
+
+> undefined는 꽃의 이름을 부르기 전이고, null은 꽃을 죽여버린 것이라 하더라.
+
+### Never
+
+절대 발생할 수 없는 타입입니다. 주로 아래와 같은 상황에서 활용합니다.
+
+1. **`switch`문 또는 조건부 검사에서 처리되지 않는 케이스 명시**
+
+```typescript
+type Shape = 'circle' | 'square';
+
+function getShapeArea(shape: Shape): number {
+    switch (shape) {
+        case 'circle':
+            return Math.PI;
+        case 'square':
+            return 4;
+        default:
+            const _exhaustiveCheck: never = shape;
+            throw new Error(`Unhandled case: ${shape}`);
+    }
+}
+```
+
+2. **함수가 정상적으로 완료되지 않을 때**
+
+```typescript
+function throwError(message: string): never {
+    throw new Error(message);
+}
+
+function infiniteLoop(): never {
+    while (true) {}
+}
+```
+
+3. **절대 발생해서는 안 되는 코드 경로를 명시할 때**
+
+```typescript
+type User = { name: string } | { id: number };
+
+function handleUser(user: User) {
+    if ('name' in user) {
+        console.log(user.name);
+    } else if ('id' in user) {
+        console.log(user.id);
+    } else {
+        const unreachable: never = user; // 이 경로는 절대 발생하면 안 됨
+    }
+}
+```
+
+요약하면 예외적인 오류나 도달 불가 경로를 명시할 때 주로 사용합니다.
+
+### Object
+
+JavaScript에도 있는 타입입니다. 객체 관련 타입은 주로 인터페이스로 지정하기 때문에 `object` 타입 자체는 상대적으로 잘 사용하지 않습니다.
+
+---
+
+## 인터페이스 (Interface)
+
+인터페이스는 객체 타입을 정의할 때 사용하는 문법입니다. 다음과 같은 것들을 정의할 수 있습니다.
+
+- 객체의 속성과 속성 타입
+- 함수의 파라미터와 반환 타입
+- 함수의 스펙 (파라미터 개수 및 필수 값 여부)
+- 배열과 객체를 접근하는 방식
+
+### 선택적 프로퍼티
+
+`?:`를 사용하면 해당 속성을 선택적으로 선언할 수 있습니다. API response 스키마에서 필수가 아닌 값은 옵셔널로 지정해 주면 됩니다.
+
+### 초과 프로퍼티 검사
+
+인터페이스에 선언되지 않은 속성을 전달하면 TypeScript가 에러를 반환합니다.
+
+```typescript
+interface SquareConfig {
+    color?: string;
+    width?: number;
+}
+
+// 에러: colour는 SquareConfig에 없는 속성
+let mySquare = createSquare({ colour: "red", width: 100 });
+```
+
+추가 프로퍼티가 존재하는 것이 확실한 경우에는 문자열 인덱스 시그니처를 활용할 수 있습니다.
+
+```typescript
+interface SquareConfig {
+    color?: string;
+    width?: number;
+    [propName: string]: any;
+}
+```
+
+다만 이렇게 열어두면 `color`, `width` 외의 값이 무엇이든 허용되므로 타입 선언의 의미가 희석될 수 있습니다. 속성 이름은 알 수 없지만 속성 이름의 타입과 값의 타입을 아는 경우에 주로 활용합니다.
+
+### 인터페이스 확장하기
+
+`extends`로 기존 인터페이스를 상속받아 확장할 수 있습니다.
+
+```typescript
+interface Person {
+    name: string;
+    age: number;
+}
+
+interface Job extends Person {
+    skill: string
+}
+// 위 코드는 아래와 사실상 동일합니다.
+// interface Job {
+//     name: string;
+//     age: number;
+//     skill: string;
+// }
+
+const user: Job = {
+    name: 'Soul',
+    age: 1,
+    skill: 'sleeping'
+}
+```
+
+상속받은 인터페이스의 모든 속성을 반드시 충족해야 합니다.
+
+---
+
+## 리터럴 타입
+
+타입을 좁히는 용도로 사용합니다. 주로 유니언과 함께 사용하여 허용되는 값을 제한합니다. 설정값이나 고정된 선택지를 다룰 때 자주 활용합니다.
+
+```typescript
+// 상품 탭에 대한 타입 제한 선언
+export type StoreType = 'Luxury' | 'Sports' | 'Digital'
+
+export type StoreInitType = {
+    name: {
+        kr: string
+        en: StoreType
+    }
+    id: string
+    order: {
+        ranking: 'daily' | 'weekly' | 'monthly'
+        store: 'recommend' | 'popular'
+    }
+}
+```
+
+---
+
+## 유니언과 교차 타입
+
+### 유니언 타입 (Union Type)
+
+JavaScript의 `or` 개념에 해당하며, `|`로 여러 타입을 허용합니다.
+
+```typescript
+function padLeft(value: string, padding: string | number) {
+    // ...
+}
+```
+
+유니언 타입 사용 시 주의할 점이 있습니다. 각 타입에서 공통으로 사용할 수 없는 속성에 접근하면 에러가 발생합니다.
+
+```typescript
+function sampleFunc(a: string | number) {
+    return a.length  // 에러: number에는 length가 없음
+    // Property 'length' does not exist on type 'string | number'.
+}
+```
+
+타입별로 분기 처리가 필요합니다.
+
+```typescript
+function sampleFunc(a: string | number) {
+    if (typeof a === 'string') {
+        return a.length
+    }
+    return a
+}
+```
+
+인터페이스에서도 마찬가지입니다.
+
+```typescript
+interface Person {
+    name: string;
+    age: number;
+}
+
+interface Developer {
+    name: string;
+    skill: string
+}
+
+function introduce(someone: Person | Developer) {
+    // 에러: Developer에는 age가 없음
+    console.log(someone.age)
+}
+```
+
+두 인터페이스에서 공통으로 갖는 `name`만 안전하게 사용할 수 있습니다. 실무에서는 허용 값을 제한하는 용도로 자주 활용합니다.
+
+```typescript
+// 로그인 유형을 2가지로 제한 — 오탈자나 기타 오류를 사전에 방지
+export type LoginType = 'crew' | 'user'
+```
+
+### 교차 타입 (Intersection Type)
+
+유니언과 밀접한 관련이 있지만, 타입을 합치는 용도로 사용합니다. `&`로 표현합니다.
+
+```typescript
+interface Person {
+    name: string;
+    age: number;
+}
+
+interface Developer {
+    name: string;
+    skill: string
+}
+
+function introduce(someone: Person & Developer) {
+    // Person과 Developer를 모두 만족해야 하므로 age에 접근 가능
+    console.log(someone.age)
+}
+```
+
+유니언이 교집합(공통 속성만 사용)처럼 동작하는 것과 달리, 교차 타입은 합집합(두 타입의 속성을 모두 포함) 개념으로 이해하면 됩니다.
+
+<Callout emoji="💡">
+`string & number`처럼 기본 타입끼리 교차하면 두 타입을 동시에 만족하는 값이 없으므로 `never`가 됩니다. 교차 타입은 주로 인터페이스나 객체 타입을 합칠 때 활용합니다.
+</Callout>
+
+---
+
+## 열거형 심화
+
+enum의 기본 내용은 위의 기본 타입 섹션에서 다뤘습니다. 이중 연산자(`<<`, `>>`, `>>>`, `^`) 관련 비트 연산자도 언급되는데, 실무에서 쓸 일이 거의 없으므로 참고만 해 두면 됩니다.
+
+- 참고: [[JS] 비트연산자 종류, 설명 및 예제](https://velog.io/@jiyaho/JS-비트연산자-종류-설명-및-예제)
+
+---
+
+## 제네릭 (Generics)
+
+제네릭은 타입을 미리 정의하지 않고, 사용하는 시점에 원하는 타입을 정의해서 쓸 수 있도록 하는 문법입니다.
+
+### 제네릭이 필요한 이유
+
+타입만 다르고 로직이 동일한 함수를 중복으로 선언해야 하는 문제가 있습니다.
+
+```typescript
+function getText(text: string): string {
+    return text
+}
+
+function getNumber(num: number): number {
+    return num
+}
+```
+
+`any`를 사용하면 중복은 피할 수 있지만, TypeScript가 제공하는 사전 에러 탐지와 자동 완성 혜택을 모두 잃게 됩니다.
+
+### 제네릭 사용법
+
+```typescript
+function getText<T>(text: T): T {
+    return text
+}
+
+// 매개변수를 string으로 넣으면 반환값도 string으로 추론
+getText<string>('hi')
+
+// 매개변수를 number로 넣으면 반환값도 number로 추론
+getText<number>(2)
+```
+
+`<T>`는 타입 파라미터로, 호출 시점에 타입을 지정하면 입력과 출력의 타입이 연동되어 추론됩니다. 타입을 위한 불필요한 코드 중복 없이 재사용 가능한 함수를 작성할 수 있습니다.

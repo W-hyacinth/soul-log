@@ -1,0 +1,119 @@
+---
+title: "자바스크립트 패턴 — 3.6 클래스 상속"
+description: "ES6 class의 호이스팅, new 연산자 필수 사용, extends와 super를 활용한 클래스 상속을 정리합니다."
+date: 2021-01-03
+tags: ["JavaScript", "학습"]
+cover: null
+---
+
+이 책에서는 프로토타입을 활용한 클래스 상속을 다루고 있는데, c#이나 c++ 같은 클래스 상속과는 차이가 있어 큰 의미가 없을 것으로 판단됩니다. 그래서 클래스 상속보다는 **ES6 class 자체**에 대해 정리합니다.
+
+참고: [Class | PoiemaWeb](https://poiemaweb.com/es6-class)
+
+---
+
+## 1. 호이스팅
+
+`class`에서도 ES6에서 추가된 `let`과 동일한 호이스팅 이슈가 발생합니다.
+
+```javascript
+console.log(Foo1);
+// ReferenceError: Foo1 is not defined
+class Foo1 {}
+
+{
+    console.log(Foo2);
+    // ReferenceError: Cannot access 'Foo2' before initialization
+
+    class Foo2 {}
+}
+```
+
+---
+
+## 2. new 연산자 필수
+
+`class`의 생성자는 반드시 `new` 연산자를 사용하여 호출해야 합니다.
+
+```javascript
+class Foo1 {}
+
+const foo = Foo1();
+// TypeError: Class constructor Foo1 cannot be invoked without 'new'
+```
+
+---
+
+## 3. 클래스 내부 선언 제한
+
+클래스 내부에는 메서드 형태 외에는 부가적으로 선언할 수 없습니다. 다만 최신 브라우저나 Node.js 12버전 이상에서는 메서드가 아니어도 실행됩니다.
+
+```javascript
+class Foo {
+  name = ''; // SyntaxError (구형 환경)
+
+  constructor() {}
+}
+```
+
+---
+
+## 4. extends와 super를 활용한 상속
+
+`extends` 키워드는 부모 클래스(base class)를 상속받는 자식 클래스를 정의할 때 사용합니다.
+
+```javascript
+// 부모 클래스
+class Circle {
+  constructor(radius) {
+    this.radius = radius; // 반지름
+  }
+
+  // 원의 지름
+  getDiameter() {
+    return 2 * this.radius;
+  }
+
+  // 원의 둘레
+  getPerimeter() {
+    return 2 * Math.PI * this.radius;
+  }
+
+  // 원의 넓이
+  getArea() {
+    return Math.PI * Math.pow(this.radius, 2);
+  }
+}
+
+// 자식 클래스
+class Cylinder extends Circle {
+  constructor(radius, height) {
+    super(radius);
+    this.height = height;
+  }
+
+  // 원통의 넓이: 부모 클래스의 getArea 메소드를 오버라이딩합니다.
+  getArea() {
+    // (원통의 높이 * 원의 둘레) + (2 * 원의 넓이)
+    return (this.height * super.getPerimeter()) + (2 * super.getArea());
+  }
+
+  // 원통의 부피
+  getVolume() {
+    return super.getArea() * this.height;
+  }
+}
+
+// 반지름이 2, 높이가 10인 원통
+const cylinder = new Cylinder(2, 10);
+
+console.log(cylinder.getDiameter());  // 4
+console.log(cylinder.getPerimeter()); // 12.566370614359172
+console.log(cylinder.getArea());      // 150.79644737231007
+console.log(cylinder.getVolume());    // 125.66370614359172
+
+console.log(cylinder instanceof Cylinder); // true
+console.log(cylinder instanceof Circle);   // true
+```
+
+`super` 키워드는 부모 클래스의 `constructor`를 호출하거나 부모 클래스의 메서드에 접근할 때 사용합니다.

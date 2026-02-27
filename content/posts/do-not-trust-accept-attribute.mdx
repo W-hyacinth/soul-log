@@ -1,0 +1,82 @@
+---
+title: "파일 첨부 작업할 땐 accept를 신뢰하지 말것"
+description: "HTML input의 accept 속성만으로는 파일 타입을 제한할 수 없습니다. 파일 선택 대화에서 '모든 파일'로 변경하면 제약이 우회되기 때문입니다."
+date: 2022-03-07
+tags: ["Vue.js", "Frontend"]
+cover: null
+---
+
+어드민 프론트 작업 중 이미지와 PDF 파일만 첨부 가능하도록 구현했습니다.
+
+## 초기 코드 (문제 있음)
+
+```javascript
+<template>
+  <input type="file" v-model="fileUrl" accept="image/*, .pdf" @change="changeFile">
+</template>
+export default {
+  data() {
+    return {
+      fileUrl: null,
+    }
+  },
+  methods: {
+    async changeFile() {
+      const { files } = event.target
+      if (files.length <= 0) {
+        return
+      }
+      const file = files[0]
+      const fileReader = new FileReader()
+      fileReader.readAsDataURL(file)
+
+      // api 관련 코드 생략
+    }
+  }
+}
+```
+
+QA 진행 중 "엑셀 파일 업로드가 허용되고 있다"는 피드백을 받았습니다. accept 속성으로 제한했는데도 불가능했던 이유는 **파일 선택 대화에서 "모든 파일"로 변경하면 제약이 우회되기 때문**입니다.
+
+사용자 지정일 경우에는 accept로 지정된 파일들만 선택이 가능하지만:
+
+![accept 필터 적용 시](/images/do-not-trust-accept/accept-filtered.png)
+
+모든 파일로 select를 변경하면 지정하지 않은 파일들도 선택이 가능해집니다:
+
+![모든 파일 선택 시](/images/do-not-trust-accept/accept-bypassed.png)
+
+## 개선된 코드 (검증 추가)
+
+```javascript
+<template>
+  <input type="file" v-model="fileUrl" accept="image/*, .pdf" @change="changeFile">
+</template>
+export default {
+  data() {
+    return {
+      fileUrl: null,
+    }
+  },
+  methods: {
+    async changeFile() {
+      const { files } = event.target
+      if (files.length <= 0) {
+        return
+      }
+      const file = files[0]
+      const fileType = file.type
+      if (!fileType.includes('image') && !fileType.includes('pdf')) {
+        alert('해당 파일은 이미지 파일이 아닙니다.\n이미지(JPG,JPEG,GIF,PNG)나 PDF 파일을 업로드 해주세요.')
+        return
+      }
+      const fileReader = new FileReader()
+      fileReader.readAsDataURL(file)
+
+      // api 관련 코드 생략
+    }
+  }
+}
+```
+
+`accept` 속성은 사용자 편의를 위한 보조 기능이며, 실제 파일 타입 검증은 서버나 클라이언트 코드에서 별도로 구현해야 합니다.

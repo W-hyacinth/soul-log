@@ -1,0 +1,44 @@
+---
+title: "Document does not have a valid rel=canonical — Google Lighthouse SEO"
+description: "Lighthouse SEO 항목 중 canonical 링크 문제를 다룹니다. 중복 콘텐츠 문제 해결을 위한 올바른 canonical 설정 방법을 정리했습니다."
+date: 2020-11-17
+tags: ["SEO", "Lighthouse"]
+cover: null
+---
+
+## 문서에 유효한 rel=canonical이 없습니다
+
+Canonical 링크는 중복 콘텐츠가 여러 URL에 존재할 때 검색엔진에 어떤 버전을 검색 결과에 표시할지 알려줍니다.
+
+### Canonical 링크가 필요한 이유
+
+- 검색엔진이 중복 URL을 선호 버전으로 통합할 수 있음
+- 추적을 단순화하고 신디케이트 콘텐츠의 순위를 통합
+- 중복 콘텐츠로 인한 검색 순위 분산 방지
+
+### 구현 방법
+
+페이지의 `<head>`에 다음을 추가합니다:
+
+```html
+<link rel="canonical" href="https://example.com/preferred-url" />
+```
+
+또는 HTTP 응답 헤더에 포함할 수 있습니다.
+
+### 실패 조건
+
+다음의 경우 Lighthouse 검사에 실패합니다:
+
+- 여러 개의 canonical 링크가 있는 경우
+- URL이 유효하지 않은 경우
+- 다른 지역/언어/도메인을 가리키는 경우
+- 사이트 루트를 가리키는 경우
+
+### 가이드라인
+
+- Canonical URL이 유효한지 확인하고 가능하면 HTTPS를 사용
+- 다른 도메인을 가리키지 않도록 함 (Yahoo와 Bing은 이를 금지)
+- Google Search Console을 사용하여 Google이 인식하는 canonical URL을 확인
+
+출처: [Google 중복 URL 통합 문서](https://developers.google.com/search/docs/advanced/crawling/consolidate-duplicate-urls)

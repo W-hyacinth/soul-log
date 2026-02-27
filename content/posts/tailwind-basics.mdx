@@ -1,0 +1,821 @@
+---
+title: "Tailwind 기본 사용법"
+description: "Tailwind CSS의 기본 사용법을 정리합니다. overflow, display, position, margin/padding, width/height, font, border 등 자주 사용하는 CSS 속성의 Tailwind 클래스를 안내합니다."
+date: 2024-09-17
+tags: ["Tailwind CSS", "CSS", "Frontend"]
+cover: null
+---
+
+> 현실적으로 모든 스타일의 사용법에 대해 전달하기엔 무리가 있기 때문에, 우리가 흔히 사용하는 몇 가지 스타일에 대해서만 안내하도록 하겠다
+
+- 자주 사용하는 속성에서 float는 제외함
+  - 과거에는 자주 사용했지만 최근에는 대다수가 flex나 grid로 정렬해서 사실상 쓸 일이 없기 때문
+
+## overflow 속성을 사용할 경우
+
+`{{속성}}-{{속성값}}`
+
+1. css에서 `overflow: hidden` 인 경우, tailwind에서는 `overflow-hidden` 라는 class를 부여한다
+2. css에서 `overflow-x: auto`인 경우, tailwind에서는 `overflow-x-auto` 라는 class를 부여한다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| overflow-hidden | overflow: hidden |
+| overflow-auto | overflow: auto |
+| overflow-scroll | overflow: scroll |
+| overflow-x-hidden | overflow-x: hidden |
+| overflow-y-auto | overflow-y: auto |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/overflow](https://tailwindcss.com/docs/overflow) |
+
+## display 속성을 사용할 경우
+
+`{{속성값}}`
+
+1. css에서 `display: flex`인 경우, tailwind에서는 `flex`라는 class를 부여한다
+2. css에서 `display: table-row`인 경우, tailwind에서는 `table-row`라는 class를 부여한다
+3. css에서 `display: none`인 경우, tailwind에서는 `hidden`라는 class를 부여한다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| hidden | display: none |
+| block | display: block |
+| inline-block | display: inline-block |
+| flex | display: flex |
+| inline-flex | display: inline-flex |
+| table | display: table |
+| table-row | display: table-row |
+| grid | display: grid |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/display](https://tailwindcss.com/docs/display) |
+
+### flex에서 자식에게 일정한 간격을 줄 경우
+
+`space-{{x|y}}-{{수치}}`
+
+- 일반적으로는 간격 조정을 위해 `gap`을 쓰고, `gap`은 `grid`나 `flex`에서 전부 다 지원되는 속성이지만 하위 브라우저에서 적용 안되는 이슈가 있음
+
+![gap 브라우저 지원 현황](/images/tailwind-basics/gap-browser-support.png)
+
+- tailwind에서 바로 아래 자식들 간의 간격 조정을 위해 다른 방식을 제공함
+
+  [Space Between - Tailwind CSS](https://tailwindcss.com/docs/space)
+
+  | Class (tailwind) | Properties (Css 속성) |
+  |---|---|
+  | space-x-1 | margin-left: 0.125rem |
+  | space-y-1 | margin-top: 0.125rem |
+  | space-y-reverse | --tw-space-y-reverse: 1 (y축 기준 margin-bottom 방향으로 간격 조정, 단독 사용 불가) |
+  | space-x-reverse | --tw-space-x-reverse: 1 (x축 기준 margin-right 방향으로 간격 조정, 단독 사용 불가) |
+  | 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/space](https://tailwindcss.com/docs/space) |
+
+  - 여기서도 수치는 0을 제외한 나머지는 rem으로 제공함
+  - flex-row에서 순서를 거꾸로 배치하도록 reverse를 부여했다면 여기서도 동일한 방향에 대한 reverse 처리를 같이 해줘야 함 (안할 경우 간격 적용이 안됨)
+
+    ```html
+    <div class="flex flex-row-reverse space-x-4 space-x-reverse ...">
+      <div>01</div>
+      <div>02</div>
+      <div>03</div>
+    </div>
+    ```
+
+  - 이 방식은 자식 요소 사이에 margin 값을 부여하여 간격을 부여하기 때문에 하위 브라우저에서 간격이 벌어지지 않는 현상은 발생하지 않음
+
+- 그 외 flex 관련 기타 요소(ex. `flex-direction`이라든가 `flex-wrap`, `justify-content` 등)는 tailwind 문서를 참고해서 직접 확인해보자. 어렵지도 않고 작성하기엔 너무 내용이 많다.
+
+### position의 top, left, right, bottom 값 부여 시
+
+- `top-*`, `left-*`, `right-*`, `bottom-*`, `inset-*` 와 같이 수치를 같이 부여하면 됨
+  - 여기서 `inset`는 `margin: 0 0 0 auto` 처럼 `top`, `left`, `right`, `bottom` 값을 한번에 부여할 때 사용하는 속성인데, 하위 브라우저 관련 이슈가 있어서 (Safari만 해도 14.4 이하는 적용 불가) 기존처럼 별도로 부여하는게 더 나음
+- 음수인 경우 속성 앞에 -를 추가로 붙여준다
+  - `-top-*`, `-left-*`, `-right-*`, `-bottom-*`, `-inset-*`
+- 퍼센트로 부여 시 50%를 예시로 들 경우, `left-1/2` 이런식으로 분수로 표기해서 부여한다
+  - 하지만 분수로 표기한다고 해서 모든 값을 퍼센트로 치환해서 처리하지는 않음
+  - 흔히 쓰는 25%, 33%, 50%, 66%, 75%, 100%에 대한 값만 제공해주고 있음
+- px의 경우, 0px과 1px에 대한 값만 제공 중이며 그 외엔 전부 `rem` 단위로 치환해서 제공하고 있음
+- auto 혹은 100%로 부여할 경우에는 각각 `left-auto`, `left-full`과 같이 표기함
+- 그렇다면, 특정값을 부여해야 하는 상황에서는 어떻게?
+  1. 임시로 설정할 경우
+     - `top-[50px]` 로 바로 부여해도 된다
+  2. 자주 사용하는 단위인 경우
+     - `tailwind.config.ts` 파일의 `theme.extend.spacing`에 해당 값을 사전에 추가
+
+       ```tsx
+       import type { Config } from 'tailwindcss'
+
+       export default {
+         content: [
+           "./index.html",
+           "./src/**/*.{js,ts,jsx,tsx}",
+         ],
+         theme: {
+           extend: {
+             spacing: {
+               '2px': '2px',
+               '3px': '3px',
+             }
+           },
+         },
+         plugins: [],
+       } satisfies Config
+       ```
+
+     - 추가 후 대괄호로 해당 키 값 부여 (ex. `top-[3px]`)
+     - extend에 추가 후 부여할 경우 정상적으로 해당 값이 적용된다
+
+       ![extend spacing 적용 결과](/images/tailwind-basics/extend-spacing-result.png)
+
+     - 참고로 이 방식은 다른 속성에 대한 속성값 적용시에도 동일하게 처리된다
+       - 더 자세한 내용은 뒤에 사용자 정의 관련 파트에서 확인하자
+
+### z-index값 부여 시
+
+`z-*`
+
+- 우리가 position을 사용할 때 항상 같이 사용하는 속성 중 하나가 z-index이다
+- z-index의 경우 `z-{{수치}}`로 입력하면 된다.
+  - 마이너스 수치를 줄 경우, `-z-10` 이런식으로 마이너스를 앞에 붙이면 된다
+  - 근데 문제가 있는게, z-index로 줄 수 있는 수치가 제한적임.
+
+    | Class (tailwind) | Properties (Css 속성) |
+    |---|---|
+    | z-0 | z-index: 0 |
+    | z-10 | z-index: 10 |
+    | z-20 | z-index: 20 |
+    | z-30 | z-index: 30 |
+    | z-40 | z-index: 40 |
+    | z-50 | z-index: 50 |
+    | z-auto | z-index: auto |
+
+- 어쩌면 불필요하게 z-index를 무제한으로 남발해서 사용하는 걸 지양하기 위한 조치일수도
+  - 우리만 해도 z-index: 9999 이런거 쓰니까...
+- extend로 정의하는 것도 뭔가 이상하고, 어차피 사용하는 경우가 제한적이니까 `z-[숫자]` 로 사용하자
+
+## margin, padding 속성을 사용할 경우
+
+- 값이 0인 경우, bootstrap과 동일한 네이밍을 가짐
+  - margin은 m, padding은 p
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| mt-0 | margin-top: 0 |
+| ml-0 | margin-left: 0 |
+| mb-0 | margin-bottom: 0 |
+| mr-0 | margin-right: 0 |
+| mx-0 | margin-left: 0; margin-right: 0 |
+| my-0 | margin-top: 0; margin-bottom: 0 |
+| m-0 | margin: 0 |
+
+- auto 값은 `margin`에서만 줄 수 있으며, `ml-auto`, `mx-auto`, `m-auto` 이런식으로 부여하면 됨
+- 마이너스 값을 줄 경우, 앞에 -를 추가하면 된다
+  - ex. `-ml-px`
+- 그 외의 값은 위에서 언급했던 top, left, bottom, right와 같이 1px을 제외한 나머지 수치는 rem 기준으로 계산함
+- margin이랑 padding 값을 한 번에 주려면 어떻게 해야하지?
+  - ex. `margin: 0 auto` 를 tailwind에서 적용하려면 2가지 방법이 있음
+    1. `my-0 mx-auto`
+    2. `m-[0_auto]` — 대괄호에 값을 넣을 경우, 기존 공백은 언더바를 넣어서 채워야 정상동작 한다
+- 근데 우리는 rem에 익숙하지 않으니까 그냥 config의 extend에 선언해놓고 쓰는게 나을수도 있다
+  - 일단 디자인 시스템에서 수치가 규격화 되어있어서 굳이 대괄호로 하나하나 값을 한 번에 표기하는게 더 안좋은 경우도 있을 것 같다
+
+## width, height 속성을 사용할 경우
+
+- 설명은 width 기준으로 작성했지만, height도 동일하다고 생각하면 됨
+- 기본적으로 width는 `w-*` 형태로 표기하는 것이 특징인데, 100%와 100vw만 따로 표현방식이 다르다
+- 마찬가지로 height는 `h-*` 형태로 표기하며, tailwind에서 w-로 표기된걸 h-로 바꾸면 동일하다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| w-full | width: 100% |
+| h-full | height: 100% |
+| w-screen | width: 100vw |
+| h-screen | height: 100vh |
+| w-svw | width: 100svw |
+| w-lvw | width: 100lvw |
+| w-dvw | width: 100dvw |
+| w-min | width: min-content |
+| w-max | width: max-content |
+| w-fit | width: fit-content |
+| w-auto | width: auto |
+| w-1/2 | width: 50% |
+| w-0 | width: 0px |
+| w-px | width: 1px |
+| w-1 | width: 0.25rem |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/width](https://tailwindcss.com/docs/width) |
+
+- svw, lvw, dvw, svh, lvh, dvh 단위를 궁금해 할 사람들을 위해 잠깐 설명하면
+
+  ![viewport 단위 설명](/images/tailwind-basics/viewports-teaser.webp)
+
+  - 일단 이 단위들은 과거 vw, vh 단위를 사용할 경우, 사용자 주소창이나 하단 네비게이션에 가려지는 이슈 등이 있었어서 탄생한 단위라고 보면 된다.
+  - 근데 정말 생겨난지 얼마 안된 단위라 당장 iOS에서도 16.4부터 사용할 수 있기 때문에 우리가 쓸 일은 없을 것이다. 그냥 알아두면 좋은 상식으로만 이해하자.
+  - 100lvh, 100lvw는 맥시멈 사이즈의 viewport
+    - 보통 스크롤 내릴 때 하단의 탭 ui나 이런것들이 사라지면서 화면이 확장 될 때 볼 수 있다
+  - 100svh, 100svw는 미니멈 사이즈의 viewport
+    - 주소창과 하단의 탭 ui가 모두 노출되었을 때의 화면 사이즈
+  - 100dvh, 100dvw는 동적 viewport
+    - 사용자가 스크롤 할 때마다 보여지는 viewport 사이즈에 맞춰 유동적으로 동작하는 viewport
+
+### min-width 속성을 사용할 경우
+
+- min-width는 `min-w-*` 와 같이 앞에 `min`을 추가로 붙이면 된다
+  - min-height도 동일하게 `min-h-*` 이와 같이 표기하면 됨
+- extend에서 커스텀할 경우 spacing 대신 `theme.extend.minWidth` 에 값을 추가하자
+
+  ```tsx
+  import type { Config } from 'tailwindcss'
+
+  export default {
+    content: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}",
+    ],
+    theme: {
+      extend: {
+        minWidth: {
+          '128': '32rem',
+        },
+      },
+    },
+    plugins: [],
+  } satisfies Config
+  ```
+
+  - 적용 결과
+
+    ![min-width 적용 결과](/images/tailwind-basics/min-width-result.png)
+
+### max-width 속성을 사용할 경우
+
+- max-width는 `max-w-*` 와 같이 앞에 `max` 를 추가로 붙이면 된다
+  - max-height도 동일하게 `max-h-*` 이와 같이 표기하면 됨
+- max-width, max-height의 경우 min-width, min-height, width, height와 다르게 추가적으로 제공되는 몇 가지 특수값들이 있다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| max-w-none | max-width: none |
+| max-w-screen-md | max-width: 768px (screen 커스텀이 없는 경우) |
+| max-w-screen-xl | max-width: 1280px (screen 커스텀이 없는 경우) |
+| max-w-prose | max-width: 65ch (우리가 쓸 일은 없는데 max 단위에만 포함됨) |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/max-width](https://tailwindcss.com/docs/max-width) |
+
+- 눈 여겨볼 내용은 `max-w-none`과 `max-w-screen-*`
+  - `max-w-none`은 특정 경우에 max-width 값을 사용하지 않을 경우에 사용한다
+  - `max-w-screen-*`은 반응형 미디어쿼리 설정 값에 따라 변동된다
+
+    [Customizing Screens - Tailwind CSS](https://tailwindcss.com/docs/screens)
+
+    ```tsx
+    /** @type {import('tailwindcss').Config} */
+    module.exports = {
+      theme: {
+        screens: {
+          'sm': '640px',
+          // => @media (min-width: 640px) { ... }
+
+          'md': '768px',
+          // => @media (min-width: 768px) { ... }
+
+          'lg': '1024px',
+          // => @media (min-width: 1024px) { ... }
+
+          'xl': '1280px',
+          // => @media (min-width: 1280px) { ... }
+
+          '2xl': '1536px',
+          // => @media (min-width: 1536px) { ... }
+        }
+      }
+    }
+    ```
+
+  - screen에 대한 설정값을 변경하지 않은 경우
+
+    ![screen 기본값](/images/tailwind-basics/screen-default.png)
+
+  - tailwind.config.ts에서 screen에 대한 설정값을 변경할 경우
+
+    ```tsx
+    import type { Config } from 'tailwindcss'
+
+    export default {
+      content: [
+        "./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}",
+      ],
+      theme: {
+        screens: {
+          'xl': '1920px',
+          '2xl': '2580px',
+        }
+      },
+      plugins: [],
+    } satisfies Config
+    ```
+
+    ![screen 커스텀 적용](/images/tailwind-basics/screen-custom.png)
+
+- extend에서 커스텀할 경우 spacing 대신 `theme.extend.maxWidth` 에 값을 추가해야 한다
+  - 여기서 주의해야 할 점은, `spacing`과 `maxWidth`에 동일한 값을 중첩해서 선언하고 사용하지 말라고 권고하고 있다
+    - 에러가 나는건 아닌데, spacing 값에 선언된게 maxWidth에서 선언된 값으로 오버라이딩 된다
+
+      ```tsx
+      import type { Config } from 'tailwindcss'
+
+      export default {
+        content: [
+          "./index.html",
+          "./src/**/*.{js,ts,jsx,tsx}",
+        ],
+        theme: {
+          extend: {
+            spacing: {
+              'test': '33rem'
+            },
+            maxWidth: {
+              'test': '77rem',
+            },
+          },
+        },
+        plugins: [],
+      } satisfies Config
+      ```
+
+    - maxWidth에서 선언된 값이 적용된 것을 확인할 수 있다
+
+      ![maxWidth 오버라이드](/images/tailwind-basics/max-width-override.png)
+
+    - maxWidth 관련 값을 제거할 경우, spacing에서 선언된 값이 적용된다
+
+      ![spacing 폴백](/images/tailwind-basics/max-width-spacing-fallback.png)
+
+### 그러고보니 우리의 친구 calc는 사용 못하는걸까?
+
+- 다행히도 사용 가능한 방법이 있다.
+  1. ~~`tailwind.config.ts`에서 설정을 추가한다. (`mode: "jit"` 이 값을 추가하면 된다)~~
+     - 과거에는 mode 추가가 필수 였던걸로 보이는데, 현재는 굳이 mode를 안넣어도 되서 1단계 패스해도 됨
+  2. 대괄호에 단위로 calc를 넣는다.
+
+     ```tsx
+     // 띄어쓰기 생략할 경우
+     <div className="w-[calc(100vw-2rem)]">
+     </div>
+
+     // 띄어쓰기를 안써서 뭔가 어색하고 불편한 경우 (언더바 추가)
+     // 이 방식은 3.x 버전부터 적용되어 있다고 한다
+     <div className="w-[calc(100vw_-_2rem)]">
+     </div>
+     ```
+
+  3. 적용된 걸 확인할 수 있다.
+
+     ![calc 적용 결과](/images/tailwind-basics/calc-result.png)
+
+### width, height에 동일한 값을 부여할 경우
+
+- 쉽게 말해서 정사각형 사이즈를 부여하고 싶을 때 사용하는 단위로 `size`가 있다
+- 사용방식은 `size-*` 이런 식으로 적용하면 되는데, 계속 언급하고 있지만 얘네는 rem으로 계산한다
+- %로 적용하고 싶을 경우, position에서 이미 설명했듯 분수로 표기하면 되는데 제공되는 값은 이미 언급했듯 제한적이다
+- extend에 그냥 `px`과 `%`와 관련하여 자주 사용하는 치수에 대해서는 넣어두자
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| size-full | width: 100%; height: 100% |
+| size-min | width: min-content; height: min-content |
+| size-max | width: max-content; height: max-content |
+| size-fit | width: fit-content; height: fit-content |
+| size-auto | width: auto; height: auto |
+| size-1/2 | width: 50%; height: 50% |
+| size-0 | width: 0; height: 0 |
+| size-px | width: 1px; height: 1px |
+| size-1 | width: 0.25rem; height: 0.25rem |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/size](https://tailwindcss.com/docs/size) |
+
+## Font 관련 속성을 사용할 경우
+
+### font-family에 대한 속성을 사용할 경우
+
+`font-{{font명}}`
+
+- 기본으로 제공중인 font family가 3가지가 있다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| font-sans | font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; |
+| font-serif | font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; |
+| font-mono | font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; |
+
+- 보다시피 제공되는게 3개 뿐이라 폰트를 여러 종류를 활용하는 경우가 아니면, font-family는 그냥 기본 base에서 선언하고 안쓰는게 나을 듯 하다.
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Proxima Nova", system-ui, sans-serif;
+  }
+}
+```
+
+### font size에 대한 속성을 사용할 경우
+
+`text-*`
+
+- ex. `text-xs`, `text-xl`, `text-2xl`...
+- tailwind에서는 특이하게 font-size에 대한 단독 스타일 적용이 아닌, line-height도 같이 적용하는 방향으로 설계되어 있다
+- 어차피 디자인 시스템에 폰트 관련한 내용이 설명이 있어서 이정도로 하고 넘어감
+
+### font style에 대한 속성을 사용할 경우
+
+- 매우 간단하게 italic 쓸 지 안쓸지만 선택하면 된다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| italic | font-style: italic |
+| not-italic | font-style: normal |
+
+### font-weight에 대한 속성을 사용할 경우
+
+`font-{{두께명}}`
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| font-thin | font-weight: 100 |
+| font-extralight | font-weight: 200 |
+| font-light | font-weight: 300 |
+| font-normal | font-weight: 400 |
+| font-medium | font-weight: 500 |
+| font-semibold | font-weight: 600 |
+| font-bold | font-weight: 700 |
+| font-extrabold | font-weight: 800 |
+| font-black | font-weight: 900 |
+
+- 우리가 주로 쓰는 weight는 전부 있긴 하지만, weigth를 숫자로만 표기해온 입장에서는 익숙치 않음
+- 커스텀해서 사용할 지(ex. `font-[100]`), 어차피 이 안에서 사용하니까 굳이 추가 안하고 숙지해서 사용할지는 같이 협의되면 좋을 것 같다
+
+### text color에 대한 속성을 사용할 경우
+
+`text-*`
+
+- tailwind에서 예제로 준 값들은 워낙 분량도 많고, 우리 프로젝트에선 디자인 시스템을 사용 할거라 패스한다
+- 컬러 관련 내용은 커스텀 관련 파트에서 추가적으로 다룸
+
+### text-align에 대한 속성을 사용할 경우
+
+`text-{{속성값}}`
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| text-left | text-align: left |
+| text-center | text-align: center |
+| text-right | text-align: right |
+| text-justify | text-align: justify |
+| text-start | text-align: start |
+| text-end | text-align: end |
+
+### letter space에 대한 속성을 사용할 경우
+
+`tracking-*`
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| tracking-tighter | letter-spacing: -0.05em |
+| tracking-tight | letter-spacing: -0.025em |
+| tracking-normal | letter-spacing: 0em |
+| tracking-wide | letter-spacing: 0.025em |
+| tracking-wider | letter-spacing: 0.05em |
+| tracking-widest | letter-spacing: 0.1em |
+
+- 단위도 em으로 사용하고 우리가 생각하지 않은 단위의 letter-spacing 수치가 더 많은거 같다
+- 그냥 `tracking-[-0.5px]` 이렇게 커스텀해서 쓰자
+
+### line height에 대한 속성을 사용할 경우
+
+`leading-*`
+
+- 아마도 디자인 시스템에서 텍스트 관련 규격이 있다보니 특별히 사용할 일은 없을 것 같지만 알아두자
+- 숫자로 사용할 경우에는 3~10까지 숫자를 활용하며, 이 때 사용되는 단위는 rem이다
+- 기존처럼 1.4, 1.6과 같은 행간 값을 사용하고 싶다면 아래의 표를 참고하자
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| leading-none | line-height: 1 |
+| leading-tight | line-height: 1.25 |
+| leading-snug | line-height: 1.375 |
+| leading-normal | line-height: 1.5 |
+| leading-relaxed | line-height: 1.625 |
+| leading-loose | line-height: 2 |
+| rem 적용은 홈페이지 참조 | [https://tailwindcss.com/docs/line-height](https://tailwindcss.com/docs/line-height) |
+
+- 별도의 단위를 활용하고 싶다면 `leading-[17px]` 처럼 직접 넣거나, 아니면 자주 사용할 것 같다면 `theme.extend.lineHeight`에 추가하면 된다
+
+```tsx
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      lineHeight: {
+        'extra-loose': '2.25',
+        '11': '2.75rem',
+      }
+    },
+  },
+  plugins: [],
+} satisfies Config
+```
+
+### text가 넘칠 경우 ellipsis에 대한 처리
+
+- 고맙게도 우리는 더 이상 넘치는 영역에 대한 말줄임 처리를 위해 `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`을 봇마냥 넣을 필요가 없어졌다
+- `truncate` 이 class명 하나면 알아서 위의 3가지 속성을 다 적용해준다
+
+  [Text Overflow - Tailwind CSS](https://tailwindcss.com/docs/text-overflow)
+
+### line-clamp에 대한 속성을 사용할 경우
+
+- ellipsis 관련 처리에 대해 이야기 하는 김에 여러줄이 있는 텍스트에 대한 ellipsis 처리에 대한 설명을 부가적으로 하고자 작성함
+- `line-clamp-{{줄 수}}`를 사용하면, 원하는 row 수에 맞춰서 ellipsis 처리를 할 수 있다 (1~6까지만 사용 가능. 그 이상은 별도로 설정 값 사용할 것)
+  - 이 class 하나로 `overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;` 이 모든 속성을 한 번에 적용해준다
+
+### white space에 대한 속성을 사용할 경우
+
+`whitespace-{{속성값}}`
+
+- ellipsis 관련 처리에서 언급된 김에 겸사겸사 넣어봄
+- 대다수가 `\n` 개행 문자열에 대해 줄내림 처리를 하기 위해 저걸 `<br>` 태그로 replace 치환하는 경우가 많은데, `white-space: pre-wrap` 만 넣어줘도 충분히 해결됨
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| whitespace-normal | white-space: normal |
+| whitespace-nowrap | white-space: nowrap |
+| whitespace-pre | white-space: pre |
+| whitespace-pre-line | white-space: pre-line |
+| whitespace-pre-wrap | white-space: pre-wrap |
+| whitespace-break-spaces | white-space: break-spaces |
+
+### word break에 관련 속성을 사용할 경우
+
+`break-*`
+
+- 조회하는 페이지에서 텍스트 길이 제한이 100자 200자 이렇게 되어 있어서 텍스트가 뚫고 가는 경우도 분명 있을거 같으니까 word-break에 대한 설명도 추가로 작성해둠
+- 여기서는 `word-break`와 `overflow-wrap`을 혼용해서 사용하는 듯 하다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| break-normal | overflow-wrap: normal; word-break: normal |
+| break-words | overflow-wrap: break-word |
+| break-all | word-break: break-all |
+| break-keep | word-break: keep-all |
+
+### 번외) 접근성 등으로 노출하면 안되지만 텍스트 숨김처리 하는 경우
+
+- 부트스트랩처럼 제공하고 있다. `sr-only` class 쓰면 된다
+
+  [Screen Readers - Tailwind CSS](https://tailwindcss.com/docs/screen-readers#basic-usage)
+
+## Border 관련 속성을 사용할 경우
+
+### border radius 관련 속성을 사용할 경우
+
+`rounded-*`, `rounded-{{위치}}-*`
+
+- 아래에서 더 다루겠지만 border-radius에 대해서만 예외적으로 `rounded` 접두어를 사용한다
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| rounded-none | border-radius: 0px |
+| rounded | border-radius: 0.25rem |
+| rounded-full | border-radius: 9999px |
+| rounded-t-md | border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem |
+| rounded-r-md | border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem |
+| rounded-b-md | border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem |
+| rounded-l-md | border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem |
+| rounded-tl-md | border-top-left-radius: 0.375rem |
+| rounded-tr-md | border-top-right-radius: 0.375rem |
+| rounded-bl-md | border-bottom-left-radius: 0.375rem |
+| rounded-br-md | border-bottom-right-radius: 0.375rem |
+| 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/border-radius](https://tailwindcss.com/docs/border-radius) |
+
+- 사용하기 번거롭다면 `rounded-[12px]`, `rounded-t-[8px]` 처럼 직접 입력해서 사용해도 된다
+
+### border-width, border-style, border-color 사용시
+
+`border`, `border-*`
+
+- 아쉽게도 `border: 1px solid #000` 과 같이 한 번에 값을 부여할 방법은 없어서 하나하나 넣어야함
+- border만 단독으로 사용할 경우, `border-width: 1px`로 인식된다
+- 방식에 대해서는 tailwind 문서를 참고하자
+
+  [Border Width - Tailwind CSS](https://tailwindcss.com/docs/border-width)
+
+### 자식 요소 사이에 border 관련 속성을 부여할 경우
+
+`divide-{{x|y}}`, `divide-{{x|y}}-{{수치}}`
+
+- tailwind에서는 `divide`라는 개념을 추가하여 하위 자식의 형제들 사이에 border를 쉽게 부여할 수 있도록 처리해두었다
+- 여기서의 수치는 px로 치환해주며, 1px 외에 홀수 값은 사용할 수 없다. (사용하려면 커스텀해야함)
+
+  | Class (tailwind) | Properties (Css 속성) |
+  |---|---|
+  | divide-x | border-right-width: 0px; border-left-width: 1px |
+  | divide-x-2 | border-right-width: 0px; border-left-width: 2px |
+  | divide-y | border-top-width: 1px; border-bottom-width: 0px |
+  | divide-y-2 | border-top-width: 2px; border-bottom-width: 0px |
+  | divide-y-reverse | --tw-divide-y-reverse: 1 (y축 기준 top 방향으로 border 생성, 단독 사용 불가) |
+  | divide-x-reverse | --tw-divide-x-reverse: 1 (x축 기준 left 방향으로 border 생성, 단독 사용 불가) |
+  | 추가 내용은 홈페이지 참조 | [https://tailwindcss.com/docs/divide-width](https://tailwindcss.com/docs/divide-width) |
+
+- 제일 먼저 떠올릴 수 있는 대표적인 활용 요소 : 테이블
+- 색상이나 스타일은 나중에 tailwind 공식 문서로 작업할 때 확인하는 걸로
+
+  [Divide Width - Tailwind CSS](https://tailwindcss.com/docs/divide-width)
+
+## Box-sizing 관련 속성을 사용할 경우
+
+- 과거에는 주요 사용처가 아니였지만 현재는 사용할 일이 많은 친구라 특별히 다룸
+- 아래 표 참조하면 되는데, 중복 표현만 제거(ex. sizing, box)해서 사용하고 있음
+
+| Class (tailwind) | Properties (Css 속성) |
+|---|---|
+| box-border | box-sizing: border-box |
+| box-content | box-sizing: content-box |
+
+## hover, focus 등 가상 클래스, 가상 요소가 필요한 상황에서의 tailwind
+
+- 우리가 css에서 사용하는 대표적인 가상 클래스(Pseudo-classes)에는 다음과 같은 것들이 있다
+  - hover, focus, active, visited, checked, disabled, first-child, first-of-type, nth-child, required 등등
+- 가상 요소(Pseudo-elements)에는 아래와 같은 것들이 있다
+  - before, after, first-letter, first-line, placeholder, selection
+- 혹시나 모를 사람들을 위한 가상 클래스와 가상 요소의 차이
+  - 가상 클래스는 실제로 존재하는 요소에 특정 이벤트 및 환경에 따라 가상으로 클래스를 부여하는 방식
+  - 가상 요소는 실제로 존재하지 않는 가상의 요소를 만드는 방식
+    - 이 방식이 없던 시절(IE 7 이하)에는, 빈 div나 요소를 만들어서 처리하던 시절도 있었다.
+
+### 가상 클래스 (ex. hover) 관련 기본 예제
+
+```html
+<button className="bg-sky-500 hover:bg-sky-700">
+  Save changes
+</button>
+```
+
+```css
+.btn-primary {
+  background-color: #0ea5e9;
+}
+.btn-primary:hover {
+  background-color: #0369a1;
+}
+```
+
+```css
+.bg-sky-500 {
+  background-color: #0ea5e9;
+}
+.hover\:bg-sky-700:hover {
+  background-color: #0369a1;
+}
+```
+
+- tailwind으로 상단과 같이 가상 클래스:스타일 부여 시, 기본 상태와 호버 상태에 대해 별도의 클래스가 사용된다
+- 별도의 class를 부여하기 때문에 장점이 있는데, class를 부여하는 순서가 바뀌어도 그대로 동작한다
+  - 물론 css 스타일처럼 똑같이 중복해서 적용할 때는 맨 마지막에 선언된 값이 적용된다
+
+    ```html
+    <button className="bg-sky-500 hover:bg-sky-700 bg-green-500">
+      Save changes
+    </button>
+    ```
+
+    ![hover 오버라이드 예시](/images/tailwind-basics/hover-override.png)
+
+    - 순서에 구애받지 않기 때문에 상황에 맞춰 중첩해서 사용이 가능하다
+      - 다크 모드 특정 상황에서만 컬러를 변경한다든지
+      - 특정 미디어 쿼리에서만 스타일 변경이 필요한 경우라든지
+
+      ```html
+      <!-- 미디어 쿼리 768 기준으로 hover시 색상값 다르게 설정 -->
+      <button className="bg-sky-500 hover:bg-sky-700 md:hover:bg-fuchsia-600">
+        Save changes
+      </button>
+      ```
+
+      ![hover 미디어쿼리 예시](/images/tailwind-basics/hover-media-query.png)
+
+### 그렇다면 부모 상태를 기반으로 스타일링 할 때는 어떻게?
+
+- 대표적인 사례로 이런 것들이 있다.
+  - ex 1. 버튼의 disabled 여부에 따라 아이콘 및 스타일이 변경되어야 하는 경우
+  - ex 2. a링크 안의 요소들이 hover 여부에 따라 텍스트 등의 변경이 필요한 경우
+- 이 때는 부모 요소에 `group` 이란 class 명을 부여하고, 자식 요소에 `group-{{가상 클래스}}` 이런식으로 네이밍 해야한다
+
+  ```html
+  <a href="#" class="group block max-w-xs mx-auto rounded-lg p-6 bg-white ring-1 ring-slate-900/5 shadow-lg space-y-3 hover:bg-sky-500 hover:ring-sky-500">
+    <div class="flex items-center space-x-3">
+      <svg class="h-6 w-6 stroke-sky-500 group-hover:stroke-white" fill="none" viewBox="0 0 24 24"><!-- ... --></svg>
+      <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">New project</h3>
+    </div>
+    <p class="text-slate-500 group-hover:text-white text-sm">Create a new project from a variety of starting templates.</p>
+  </a>
+  ```
+
+- 부모가 중첩된 경우에는 `group/{{name}}` 으로 네이밍 하여 어떤 이벤트에 트리거를 걸지를 구체적으로 명시하는 방법도 있다
+
+  [Handling Hover, Focus, and Other States - Tailwind CSS](https://tailwindcss.com/docs/hover-focus-and-other-states#differentiating-nested-groups)
+
+- 또 다른 방안으로는, 부모에 group class 외에 추가적으로 명시적인 class를 부여하는 방안도 있다
+
+  ```html
+  <div class="group is-published">
+    <div class="hidden group-[.is-published]:block">
+      Published
+    </div>
+  </div>
+  ```
+
+### 형제 상태를 기반으로 하는 스타일링
+
+- 가장 대표적인 케이스로 checkbox와 label이 같이 묶여있는 경우를 들 수 있다
+- 이 때는 형제 요소에 `peer` 라는 class 명을 부여하고, 스타일을 주고자 하는 요소에 `peer-{{가상 클래스}}` 이런식의 네이밍을 한다
+- 첫 예시의 경우 바로 앞의 형제가 peer인 경우에만 동작하며, 순서가 바뀔 경우엔 동작하지 않음
+
+  [Handling Hover, Focus, and Other States - Tailwind CSS](https://tailwindcss.com/docs/hover-focus-and-other-states#styling-based-on-sibling-state)
+
+  ```html
+  <form>
+    <label class="block">
+      <span class="block text-sm font-medium text-slate-700">Email</span>
+      <input type="email" class="peer"/>
+      <p class="mt-2 invisible peer-invalid:visible text-pink-600 text-sm">
+        Please provide a valid email address.
+      </p>
+    </label>
+  </form>
+  ```
+
+- 형제 요소에 peer가 많은 경우 `peer/{{name}}` 과 `peer-checked/{{name}}` 형태로 바인딩 하면 된다
+
+  [Handling Hover, Focus, and Other States - Tailwind CSS](https://tailwindcss.com/docs/hover-focus-and-other-states#differentiating-peers)
+
+  - 이 때, 앞선 예시와 다르게 `peer/{{name}}`과 `peer-checked/{{name}}`을 거꾸로 세팅해도 동작은 정상적으로 이루어진다
+  - 명확한 타겟팅이 있어서 순서가 뒤바뀌어도 문제가 없는듯
+- 부모와 마찬가지로 peer라는 class를 부여한 뒤 다중 class 기준으로 타겟팅 하는 방법 또한 존재한다
+
+  ```html
+  <form>
+    <label for="email">Email:</label>
+    <input id="email" name="email" type="email" class="is-dirty peer" required />
+    <div class="peer-[.is-dirty]:peer-required:block hidden">This field is required.</div>
+    <!-- ... -->
+  </form>
+  ```
+
+### 부모 요소에서 자식 요소에 직접 스타일 하는 방법
+
+`*:{{tailwind class명}}`
+
+- 이 방식으로 입력하면 된다.
+  - `*:bg-sky-50` `*:text-white`
+- 이걸 사용한 뒤 자식 요소에 스타일을 입힐 경우, 위의 선언 방식이 좀 더 depth가 깊기 때문에 적용되지 않는다는 점을 유의 해야 한다
+
+  ```html
+  <ul class="*:bg-sky-50">
+    <li class="bg-red-50">Sales</li>
+    <li>Marketing</li>
+    <li>SEO</li>
+  </ul>
+  ```
+
+  ![직접 자식 스타일링](/images/tailwind-basics/direct-child-style.png)
+
+### 자식 요소에서 특정 요소 혹은 상태를 포함했는지 여부에 따라 스타일 하는 방법 (:has)
+
+- `label` 태그로 감싼 태그 안에 체크박스가 있을 때, 해당 체크박스가 체크되었는지를 판별
+  - 상태의 경우 `has-[:상태값]` 으로 타겟팅 해서 찾아낸다 (ex. `has-[:checked]`)
+- `a` 태그 안에 이미지 태그가 존재하는지 여부를 판별
+  - 요소의 경우 `has-[태그명]` 타겟팅 한다 (ex. `has-[img]`)
+- has를 활용해서 특정 형제 or 부모 요소가 자식 요소를 포함했는지에 따라 스타일도 가능하다 (심화편)
+
+  [Handling Hover, Focus, and Other States - Tailwind CSS](https://tailwindcss.com/docs/hover-focus-and-other-states#styling-based-on-the-descendants-of-a-group)
+
+## 가상 요소 (ex. before, after, placeholder) 관련 예제
+
+- 더 있지만, 우리가 사용할만한 가상 선택자가 before, after, placeholder 세 가지라 이것만 다룸
+- 나머지도 사실상 다 동일하다고 보면 됨
+
+### before, after
+
+- `before:{{tailwind class명}}`, `after:{{tailwind class명}}`
+
+  ex. before에 block요소를 주고 싶은 경우 `before:block`
+
+- before나 after의 content 요소에 텍스트를 포함하고 싶은 경우 `before:content-['']` 를 사용하면 됨
+
+### placeholder
+
+- 마찬가지로 `placeholder:{{tailwind class명}}` 이런 방식으로 부여하면 된다

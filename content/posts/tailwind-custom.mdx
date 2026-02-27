@@ -1,0 +1,376 @@
+---
+title: "Tailwind 커스텀 하기"
+description: "Tailwind CSS의 커스텀 방법을 정리합니다. @tailwind, @layer, @apply 등 Directive와 Function, config 파일 내 theme/colors/spacing 커스텀 방법을 다룹니다."
+date: 2024-09-19
+tags: ["Tailwind CSS", "CSS", "Frontend"]
+cover: null
+---
+
+## Function & Directive
+
+### Directive
+
+#### `@tailwind`
+
+- tailwind에서 제공되는 스타일을 사용하기 위해 활용하는 directive
+- `@import` 해서 스타일 가져오는 것과 사실상 동일한데, tailwind에서 가져온다고 명시한다는 점에서 의미가 있다
+- 사용 가능한건 `base`, `components`, `utilities`, `variants` 총 4가지가 있다
+  - `base`는 tailwind의 기본 스타일
+  - `components`는 tailwind의 컴포넌트 class
+    - 아래 부트스트랩 코드로 치면 alert과 같은 class를 사용할 수 있게 해준다는 의미
+
+    ```html
+    <div class="alert alert-primary" role="alert">
+      A simple primary alert—check it out!
+    </div>
+    ```
+
+  - `utilities`는 tailwind에서 지정한 css 관련 스타일에 대한 class
+  - `variants`는 hover, focus, responsive, dark mode 그 외 기타 상황에 대한 class
+
+#### `@layer`
+
+- tailwind에서 어느 버킷을 대상으로 커스텀 할 것인지 지정하는 directive
+- 대상으로 할 수 있는 건 `base`, `components`, `utilities`
+- `@tailwind` 로 불러오지 않은 대상을 `@layer` 로 대상 지정 시 에러가 발생하니 세트로 사용하자
+
+```css
+@tailwind base;
+/* @tailwind components; */
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply py-2 px-5 bg-violet-500 text-white font-semibold rounded-full shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75;
+  }
+}
+```
+
+![매치되는 @tailwind components가 존재하지 않는다고 에러 발생](/images/tailwind-custom/layer-error.png)
+
+#### `@apply`
+
+- 스타일을 입힐 때 tailwind의 속성을 가져다가 쓸 수 있도록 도와주는 directive
+
+```css
+/* Input */
+.btn {
+  @apply font-bold py-2 px-4 rounded !important;
+}
+
+/* Output */
+.btn {
+  font-weight: 700 !important;
+  padding-top: .5rem !important;
+  padding-bottom: .5rem !important;
+  padding-right: 1rem !important;
+  padding-left: 1rem !important;
+  border-radius: .25rem !important;
+}
+```
+
+- 전역에서 설정한 값을 컴포넌트 내 style로 `@apply`를 활용해 호출할 경우에는 오류가 발생한다고 한다
+  - 그 때는 plugin을 활용해야 한다고..
+
+#### `@config`
+
+- css를 컴파일 할 때 어떤 구성으로 컴파일 해야할 지를 참조할 수 있도록 도와주는 directive
+- `@config`를 사용할 경우, 반드시 `@import` 뒤에 사용되어야 한다
+
+### Function
+
+- tailwind의 특정 값에 접근할 수 있도록 사용하는 용도의 사용자 지정 함수
+- config에서 지정된 값에 접근할 수 있게 한다
+
+#### `theme()`
+
+- css가 config의 theme에 설정된 값에 접근할 수 있도록 해줌
+- 이와 같이 커스텀 색상을 설정했을 경우,
+
+```tsx
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'blue-500': '#000'
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config
+```
+
+- css에서 사용할 때 `theme(colors.blue-500)`과 같이 `dash syntex`로 접근해서는 안됨
+  - 그렇다고 `theme(colors['blue-500'])` 이런 접근 방식도 불러오지 못함
+  - 그냥 extend에서 구조를 depth를 타도록 이렇게 만들자
+
+```tsx
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'blue': {
+          '500': '#000'
+        },
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config
+```
+
+#### `screen()`
+
+- css가 config에서 screen에 적용된 반응형 break point에 접근할 수 있도록 도와주는 함수
+
+## 스타일을 재사용할 수 있게 하는 방법
+
+- 만약 우리한테 이런 버튼이 있는데 똑같은 버튼 인데 여러군데서 활용할 일이 있다고 가정하자
+
+```tsx
+<button className="py-2 px-5 bg-violet-500 text-white font-semibold rounded-full shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75">
+  Save changes
+</button>
+
+<button className="py-2 px-5 bg-violet-500 text-white font-semibold rounded-full shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75">
+  Delete items
+</button>
+```
+
+- 이 스타일에 대해 재사용이 가능하도록 하는 방법으로 아래와 같은 방법이 있다
+
+```tsx
+<button className="btn-primary">
+  Save changes
+</button>
+
+<button className="btn-primary">
+  Delete items
+</button>
+```
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply py-2 px-5 bg-violet-500 text-white font-semibold rounded-full shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75;
+  }
+}
+```
+
+- 이 방식은 디자인 시스템에 대한 타이포그래피에 대한 정의 등에 활용하면 좋을 것 같고, 특정 영역에서만 예외적으로 활용하는 경우까지 사용하는 건 좀 고민해봐야 할 것 같다
+- 추가적으로 `@layer base` 혹은 `@layer utilities` 에 커스텀 스타일을 적용해도 정상적으로 적용된다. 어디에 넣는게 합리적일지를 고민해봐야 할 듯 하다
+  - 디자인 시스템에서 타이포그래피 관련 스타일은 `component`에 들어가는게 맞을까 아니면 `utilities`에 들어가는게 맞을까? 참고로 text가 넘칠 때 ellipsis 처리하는 class는 utilities에 포함됨
+
+## config 파일 내 커스텀
+
+`tailwind.config.ts` 파일 내에서의 커스텀 관련 내용이다
+
+- tailwind에서는 config에서 자유롭게 커스텀이 가능하고, 여러가지 플러그인도 지원하는 것으로 되어있긴 한데 주요 옵션에 대해서만 간단하게 다루도록 하겠다
+- config 파일을 처음에 생성하면 아래와 같이 설정값이 기본적으로 나온다
+
+```tsx
+import type { Config } from 'tailwindcss'
+
+export default {
+  content: [],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+} satisfies Config
+```
+
+### content
+
+- tailwind의 클래스가 포함되는 html 템플릿과, javascript 구성요소의 경로를 설정하는 곳
+- 경로는 glob 패턴으로 구성해야 한다
+  - `*` : 슬래시와 숨겨진 파일을 제외한 모든 것과 일치
+  - `**` : 0개 이상의 디렉토리와 일치
+  - `{}` : 옵션과 일치, 즉 이 부분에는 주로 파일명 등을 작성한다
+
+  ```tsx
+  import type { Config } from 'tailwindcss'
+
+  export default {
+    content: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}",
+    ],
+    theme: {
+      extend: {},
+    },
+    plugins: [],
+  } satisfies Config
+  ```
+
+  - 위의 설정의 의미는?
+    1. index.html 파일과
+    2. src 폴더 하단의 js, ts, jsx, tsx 파일에 대해 경로 설정을 한다는 뜻
+
+- 경로 작성할 경우, 구체적으로 지정되어야 하며 모호하게 지정되어서는 안되며, css 파일을 포함해서는 안된다
+- 그 외에도 다른 라이브러리 사용하거나 기타 목적으로 설정할 수 있다고 하는데, 더 필요하면 그 때 봐두자
+
+### theme
+
+- 프로젝트의 색상, 글꼴, 중단점, border 등을 정의하는 섹션
+- 여기서는 주로 세팅에 필요하거나 혹은 값에 영향을 주는 screens, colors, spacing에 대해서만 다룸
+
+### screens
+
+- 반응형에 대응하기 위해 tailwind에서 기본적으로 설정한 분기점이며 break 기준은 min-width로 잡고 있다
+
+| prefix | width | css |
+|---|---|---|
+| sm | 640px | `@media (min-width: 640px) { ... }` |
+| md | 768px | `@media (min-width: 768px) { ... }` |
+| lg | 1024px | `@media (min-width: 1024px) { ... }` |
+| xl | 1280px | `@media (min-width: 1280px) { ... }` |
+| 2xl | 1536px | `@media (min-width: 1536px) { ... }` |
+
+- 앞에서도 설명을 했지만 여기서 설정된 `sm`, `md`, `lg`, `xl`, `2xl` 값은 다른 설정 값에 영향을 준다
+- 만일 기존 값은 그대로 유지하되, 특정 분기점을 추가하고 싶다면 아래와 같이 설정하자
+
+```jsx
+const defaultTheme = require('tailwindcss/defaultTheme')
+
+module.exports = {
+  theme: {
+    screens: {
+      ...defaultTheme.screens,
+      'xs': '475px',
+    },
+  },
+  plugins: [],
+}
+```
+
+- 참고로 이거는 실제 테스트로 검증은 못해봤다. ts에서 쓰려고 하면 require땜에 오류나더라
+- 그리고 하나 더 주의사항은, screens에서 값을 추가로 활용할 것이 아니라면 아예 삭제하자
+  - screens의 빈 객체만 있어도 위의 `sm`, `md`, `lg`, `xl`, `2xl` 를 활용하는 모든 값들을 사용할 수 없게 된다
+
+### colors
+
+- tailwind에서는 이미 굉장히 많은 값들에 대해 정의를 해둔 상태다
+- 색상에 대해 커스텀 하는 방식에 몇 가지가 있는데
+  1. `theme.extend.colors`에 정의하기
+
+     ```tsx
+     import type { Config } from 'tailwindcss'
+
+     export default {
+       content: [
+         "./index.html",
+         "./src/**/*.{js,ts,jsx,tsx}",
+       ],
+       theme: {
+         extend: {
+           colors: {
+             transparent: 'transparent',
+             'tahiti': {
+               100: '#cffafe',
+               200: '#a5f3fc',
+               300: '#67e8f9',
+               400: '#22d3ee',
+               500: '#06b6d4',
+               600: '#0891b2',
+               700: '#0e7490',
+               800: '#155e75',
+               900: '#164e63',
+             }
+           }
+         },
+       },
+       plugins: [],
+     } satisfies Config
+     ```
+
+  2. css의 `:root` 경로에 변수로 컬러 값을 지정한 뒤, config에서 정의
+
+     ```css
+     @tailwind base;
+     @tailwind components;
+     @tailwind utilities;
+
+     @layer base {
+       :root {
+         --color-primary: 255 115 179;
+         --color-secondary: 111 114 185;
+         /* ... */
+       }
+     }
+     ```
+
+     ```tsx
+     import type { Config } from 'tailwindcss'
+
+     export default {
+       content: [
+         "./index.html",
+         "./src/**/*.{js,ts,jsx,tsx}",
+       ],
+       theme: {
+         extend: {
+           colors: {
+             primary: 'rgb(var(--color-primary))',
+             secondary: 'rgb(var(--color-secondary))',
+           }
+         },
+       },
+       plugins: [],
+     } satisfies Config
+     ```
+
+  3. 그 외 특정 색상을 직접 넣는 방법(ex. `bg-[#1da1f2]`)도 있지만 정말 특수하지 않고서야 비추천
+
+### spacing
+
+- 간격, 여백 값에 대해 정의하는 곳
+- 여기서 정의 된 값은 아래의 css 값에 영향을 미칠 수 있다
+- 추가로, 여기에 정의된 값이 더 강력한 영향을 준다
+  - 예를 들어, spacing에서 아래와 같이 값을 지정했다고 가정하자
+
+  ```tsx
+  import type { Config } from 'tailwindcss'
+
+  export default {
+    content: [],
+    theme: {
+      spacing: {
+        '3px': '333px'
+      },
+    },
+    plugins: [],
+  } satisfies Config
+  ```
+
+  - 이 때, `w-[3px]`로 값을 주입할 경우, 위에 선언된 spacing의 영향으로 width 값은 333px로 처리된다
+  - 그러니까 이름 지을 때 조심하자
+- 아, 나중에 확인한건데 앞선 예제들을 작성할 때 extend 안에 spacing 값이 들어가 있었는데 extend 안에 들어가도 동작하고, 밖에 있어도 동작한다. 문제없다.
+
+- 그 외 추가적으로 궁금한 세팅 값은 아래 글을 읽어보자
+
+  [Theme Configuration - Tailwind CSS](https://tailwindcss.com/docs/theme#configuration-reference)
+
+## 결론
+
+- 솔직히 수많은 블로그나 글들이 tailwind에 대해 단점으로 언급했던 러닝커브는 생각 외로 높지 않았다.
+  - css가 숙달된 사람이면 문서를 보고 쉽게 비슷비슷한 규칙을 확인해서 쉽게 사용할 수 있을 것 같다
+- 커스텀이 자유자재인 만큼, 규칙을 안지키면 굉장히 지저분하게 쓰일 확률도 높음
+- 다들 알겠지만, css는 굉장히 종류가 많은데 여기에서는 우리가 스타일 입힐 때 가장 많이 흔하게 사용하는 것들에 대해서만 부분적으로 다룬거임
+- 나머지는 직접 작업하면서 익히는 걸로.

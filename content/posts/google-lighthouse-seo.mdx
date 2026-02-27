@@ -1,0 +1,39 @@
+---
+title: "Google Lighthouse (SEO)"
+description: "Google Lighthouse SEO 항목의 전체 검사 항목을 정리합니다. 검색엔진이 컨텐츠를 이해하는지, 크롤링 가능 여부, 모바일 친화성 등을 다룹니다."
+date: 2020-11-09
+tags: ["SEO", "Lighthouse"]
+cover: null
+---
+
+> 검색엔진은 당신의 컨텐츠를 얼마나 잘 이해하고 있을까요?
+
+이 항목들은 페이지가 검색 엔진 순위에 최적화 되어있는지 여부를 검사합니다.
+
+## 검색 엔진이 컨텐츠를 이해하는지 확인합니다
+
+- Document doesn't have a `<title>` element — 문서에 `<title>` 요소가 없습니다
+- Document does not have a meta description — 문서에 `<meta name="description">`이 없습니다
+- Links do not have descriptive text — 링크에 대한 명확한 텍스트가 없습니다
+- Document doesn't have a valid hreflang — 문서에 유효한 언어설정이 없습니다
+- Document does not have a valid rel=canonical — 문서에 유효한 표준 링크가 없습니다
+- Image elements do not have `[alt]` attributes — 이미지 요소에 alt 속성이 없습니다
+
+## 검색엔진은 페이지에 대해 크롤링 하고 색인을 만들 수 있는지 확인합니다
+
+- 페이지가 http 상태 코드 응답에 실패했습니다
+- 페이지가 색인을 만드는 것을 차단했습니다
+- robot.txt가 유효하지 않습니다
+- 문서에서 Plugin을 사용중입니다
+
+## 페이지를 모바일 친화적으로 만들 수 있습니다
+
+- `<meta name="viewport">` 태그의 content 속성에 width나 initial-scale을 포함하고 있지 않습니다
+- 문서에서 유저가 읽기에 선명한 폰트 크기를 사용하지 않았습니다
+- 탭을 하기 위한 면적이나 탭과 탭 사이의 간격이 적절하지 않습니다
+
+## 수동 검사 해야할 것들을 알려줍니다
+
+- 유효한 데이터 구조를 사용하고 있습니다
+
+출처: [web.dev Lighthouse SEO](https://web.dev/lighthouse-seo/)
