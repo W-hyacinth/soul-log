@@ -9,23 +9,21 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
-  return getAllTags().map((tag) => ({ tag: encodeURIComponent(tag) }));
+  return getAllTags().map((tag) => ({ tag }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { tag } = await params;
-  const decoded = decodeURIComponent(tag);
 
   return {
-    title: `#${decoded}`,
-    description: `${decoded} 태그가 포함된 포스트 목록`,
+    title: `#${tag}`,
+    description: `${tag} 태그가 포함된 포스트 목록`,
   };
 }
 
 export default async function TagPage({ params }: PageProps) {
   const { tag } = await params;
-  const decoded = decodeURIComponent(tag);
-  const posts = getPostsByTag(decoded);
+  const posts = getPostsByTag(tag);
 
   return (
     <Container>
@@ -39,7 +37,7 @@ export default async function TagPage({ params }: PageProps) {
           </Link>
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-notion-text mb-6">
-          <span className="text-notion-text-light">#</span>{decoded}
+          <span className="text-notion-text-light">#</span>{tag}
         </h1>
         <p className="text-sm text-notion-text-light mb-8">
           {posts.length}개의 포스트

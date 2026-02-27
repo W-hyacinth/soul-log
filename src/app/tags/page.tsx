@@ -23,7 +23,7 @@ export default function TagsPage() {
             return (
               <Link
                 key={tag}
-                href={`/tags/${encodeURIComponent(tag)}`}
+                href={`/tags/${tag}`}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-notion-bg-gray text-notion-text hover:bg-notion-bg-hover transition-colors text-sm"
               >
                 <span>{tag}</span>
