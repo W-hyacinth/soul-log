@@ -11,7 +11,7 @@ export function tagToSlug(tag: string): string {
   const map: Record<string, string> = {
     "학습": "study",
     "비동기": "async",
-    "HTTP 웹 기본": "http-web-basics",
+    "모든 개발자를 위한 HTTP 웹 기본 지식": "http-web-basics",
   };
   if (map[tag]) return map[tag];
   // 매핑 없는 경우: 소문자 + 공백→하이픈 + 특수문자 제거
