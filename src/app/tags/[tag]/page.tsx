@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllTags, getPostsByTag } from "@/lib/posts";
+import { getAllTags, getPostsByTag, tagToSlug, slugToTag } from "@/lib/posts";
 import { Container } from "@/components/layout/Container";
 import { PostList } from "@/components/posts/PostList";
 import Link from "next/link";
@@ -9,11 +9,12 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
-  return getAllTags().map((tag) => ({ tag }));
+  return getAllTags().map((tag) => ({ tag: tagToSlug(tag) }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { tag } = await params;
+  const { tag: slug } = await params;
+  const tag = slugToTag(slug, getAllTags());
 
   return {
     title: `#${tag}`,
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function TagPage({ params }: PageProps) {
-  const { tag } = await params;
+  const { tag: slug } = await params;
+  const tag = slugToTag(slug, getAllTags());
   const posts = getPostsByTag(tag);
 
   return (

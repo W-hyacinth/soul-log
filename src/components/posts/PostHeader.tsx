@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale/ko";
+import { tagToSlug } from "@/lib/posts";
 
 interface PostHeaderProps {
   title: string;
@@ -31,7 +32,7 @@ export function PostHeader({ title, date, readingTime, tags }: PostHeaderProps) 
           {tags.map((tag) => (
             <Link
               key={tag}
-              href={`/tags/${tag}`}
+              href={`/tags/${tagToSlug(tag)}`}
               className="inline-flex px-2 py-0.5 rounded text-xs bg-notion-bg-gray text-notion-text-light hover:bg-notion-bg-hover transition-colors"
             >
               {tag}
