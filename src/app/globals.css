@@ -5,7 +5,7 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-notion-text: #37352f;
-  --color-notion-text-light: #787774;
+  --color-notion-text-light: #6b6b6b;
   --color-notion-bg: #ffffff;
   --color-notion-bg-gray: #f7f6f3;
   --color-notion-bg-hover: #efefef;
@@ -13,7 +13,7 @@
   --color-notion-link: #2383e2;
 
   --color-notion-code-bg: #f7f6f3;
-  --color-notion-code-text: #eb5757;
+  --color-notion-code-text: #d1453b;
 
   --color-notion-callout-bg: #f7f6f3;
 
@@ -23,7 +23,7 @@
 /* Dark mode custom properties */
 .dark {
   --color-notion-text: #e6e6e6;
-  --color-notion-text-light: #9b9b9b;
+  --color-notion-text-light: #a8a8a8;
   --color-notion-bg: #191919;
   --color-notion-bg-gray: #252525;
   --color-notion-bg-hover: #2f2f2f;
