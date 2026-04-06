@@ -30,7 +30,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
         </pre>
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 text-xs rounded bg-notion-bg-hover text-notion-text-light hover:text-notion-text"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity px-2 py-1 text-xs rounded bg-notion-bg-hover text-notion-text-light hover:text-notion-text"
           aria-label="Copy code"
         >
           {copied ? "Copied!" : "Copy"}

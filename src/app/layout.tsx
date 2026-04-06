@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     locale: SITE_CONFIG.locale,
     siteName: SITE_CONFIG.title,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_CONFIG.title,
+    description: SITE_CONFIG.description,
+  },
   verification: {
     google: "-nU7y1r4UbW5AyTPuWeC_YDD87oF4JCwZdahEI1XVac",
   },
@@ -49,7 +54,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-notion-bg text-notion-text">
         <ThemeProvider>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">{children}</main>
           <Footer />
         </ThemeProvider>
       </body>

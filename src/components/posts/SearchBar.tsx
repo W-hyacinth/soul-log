@@ -65,11 +65,13 @@ export function SearchBar({ posts }: SearchBarProps) {
   return (
     <div>
       <div className="relative mb-6">
+        <label htmlFor="search-input" className="sr-only">포스트 검색</label>
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-notion-text-light"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -79,7 +81,8 @@ export function SearchBar({ posts }: SearchBarProps) {
           />
         </svg>
         <input
-          type="text"
+          id="search-input"
+          type="search"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="포스트 검색..."
@@ -100,7 +103,7 @@ export function SearchBar({ posts }: SearchBarProps) {
 
       {isSearching ? (
         <div>
-          <p className="text-sm text-notion-text-light mb-4">
+          <p className="text-sm text-notion-text-light mb-4" role="status" aria-live="polite">
             {results!.length > 0 ? `${results!.length}개의 결과` : null}
           </p>
           {results!.length > 0 ? (
@@ -116,6 +119,7 @@ export function SearchBar({ posts }: SearchBarProps) {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"

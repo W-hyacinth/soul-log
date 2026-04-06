@@ -32,7 +32,7 @@ export function Video({ src, caption }: VideoProps) {
           playsInline
           className="w-full rounded-md border border-notion-border"
         >
-          <track kind="captions" />
+          <track kind="captions" src="" srcLang="ko" label="한국어" />
         </video>
       )}
       {caption && (
