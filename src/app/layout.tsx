@@ -54,7 +54,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-notion-bg text-notion-text">
         <ThemeProvider>
           <Header />
-          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">{children}</main>
+          <main id="main-content" className="flex-1">{children}</main>
           <Footer />
         </ThemeProvider>
       </body>

@@ -5,6 +5,7 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { PostHeader } from "@/components/posts/PostHeader";
 import { MdxRenderer } from "@/components/mdx/MdxRenderer";
 import { Container } from "@/components/layout/Container";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -75,6 +76,7 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <Container>
+      <ScrollToTop />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
