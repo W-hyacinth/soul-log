@@ -16,7 +16,7 @@ cover: null
 
 ## 변경 시 고려사항
 
-- 기존 크루 어드민에서 사용 중인 명령어와 동일(또는 유사)하게 유지합니다.
+- 기존 프로젝트에서 사용 중인 명령어와 동일(또는 유사)하게 유지합니다.
 
 ## 변경 과정에서 확인된 사항
 
@@ -25,11 +25,11 @@ cover: null
 Vite 환경에서는 기본적으로 CommonJS의 `require` 사용이 불가합니다. 반드시 ES Module의 `import`로 받아와야 합니다.
 
 ```javascript
-// 크루 어드민 (기존)
+// 기존 프로젝트
 const path = require('path')
 const PACKAGE = require('./package.json')
 
-// PMS (Vite 적용 후)
+// 신규 프로젝트 (Vite 적용 후)
 import path from 'node:path'
 import PACKAGE from './package.json'
 ```
@@ -57,10 +57,10 @@ import process from 'node:process'
 ## 변경점 — `package.json` scripts
 
 ```javascript
-// 크루 어드민 (기존 vue-cli-service)
+// 기존 프로젝트 (vue-cli-service)
 "scripts": {
     "http": "vue-cli-service serve --mode development --public 0.0.0.0 --no-lint --port 7001",
-    "serve": "vue-cli-service serve --mode development --host local.crew.sparkplus.co --port 443 --https --no-lint",
+    "serve": "vue-cli-service serve --mode development --host local.dev --port 443 --https --no-lint",
     "build": "vue-cli-service build --mode production",
     "build-staging": "vue-cli-service build --mode staging",
     "build-devserver": "vue-cli-service build --mode devserver",
@@ -70,10 +70,10 @@ import process from 'node:process'
     "lint": "vue-cli-service lint"
 },
 
-// PMS (Vite 적용 후)
+// 신규 프로젝트 (Vite 적용 후)
 "scripts": {
     "http": "vite --mode development --port 7101",
-    "serve": "sudo vite --mode development --host local.crew.sparkplus.co --port 443",
+    "serve": "sudo vite --mode development --host local.dev --port 443",
     "build": "vite build --mode production",
     "build-staging": "vite build --mode staging",
     "build-devserver": "vite build --mode devserver",
