@@ -137,8 +137,8 @@ Failed to resolve import "vertx" from "node_modules/..."
 // src/mixin/https.js
 Vue.mixin({
   computed: {
-    SPARK_ONE_CREW_API_URL() {
-      return process.env.VUE_APP_SPARK_ONE_CREW_API_URL
+    DEFAULT_API_URL() {
+      return process.env.VUE_APP_DEFAULT_API_URL
     },
     // ... 이하 생략
   },
@@ -153,7 +153,7 @@ export default {
   actions: {
     async login({ dispatch }, payload) {
       const response = await this._vm.post(
-        `${this._vm.SPARK_ONE_CREW_API_URL}login`,
+        `${this._vm.DEFAULT_API_URL}login`,
         payload,
       )
       return response
