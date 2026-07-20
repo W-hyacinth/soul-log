@@ -160,7 +160,7 @@ cover: null          # 커버 이미지 경로 또는 null
 
 - `bootstrap-vue-component.mdx` — Bootstrap-vue 컴포넌트 (2022-02-10)
 - `do-not-trust-accept-attribute.mdx` — accept를 신뢰하지 말 것 (2022-03-07)
-- `swiper-vue-ie11.mdx` — IE11 환경에서의 Swiper 적용기 (2021-08-02) ⚠️ 이미지 21개 복구 불가 (플레이스홀더로 대체)
+- `swiper-vue-ie11.mdx` — IE11 환경에서의 Swiper 적용기 (2021-08-02) ⚠️ 이미지 18개 복구 불가 (플레이스홀더로 대체, 본문 [이미지 누락] 표시 기준 — 2026-07-06 확정)
 
 ### SEO / Lighthouse
 
